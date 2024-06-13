@@ -24,7 +24,7 @@ Et à ajouter plus tard :
 - CMB27/ModbusRTUSlave, version 2.0.5
 
 ## Potentielles améliorations
-J'envisage l'ajout d'une communication `RS895` avec le - futur - système domotique Arduino de chez moi, dont l'un des terminaux de commande sera situé à la cave (bah oui, mon petit espace de travail ne sera pas épargné!). Une partie des gaines sous la dalle du garage sortant dans celle-ci, il est parfaitement possible de relier le système de gestion du garage avec le système domotique, via une liaison `MODBUS`.
+J'envisage l'ajout d'une communication `RS485` avec le - futur - système domotique Arduino de chez moi, dont l'un des terminaux de commande sera situé à la cave (bah oui, mon petit espace de travail ne sera pas épargné!). Une partie des gaines sous la dalle du garage sortant dans celle-ci, il est parfaitement possible de relier le système de gestion du garage avec le système domotique, via une liaison `MODBUS`.
 
 Cette liaison amène une autre amélioration possible : l'ajout de l'envoie de données météorologiques ! Effectivement, je compte ajouter un capteur de température, pression et humidité de type `BME280` (**et pas BMP280 comme je le croyais avant! En effet ce module ne capte pas pas l'humidité contrairement à son grand frère... J'en avais acheté 5 sans prendre la peine de regarder la différence entre les deux!**) au niveau du toit du garage ou directement derrière une grille dans le boîtier de dérivation (ce qui est dommage car cela rendrai l'étanchéité inutile). Ces données seraient affichées sur l'écran (sinon il n'afficherai que l'état courant des éclairages, ce qui, soyons honnêtes, ne sert strictement à rien.), et transmise aux réseau domotique de la maison via l'amélioration évoquée précédemment pour traitement et affichage.
 
