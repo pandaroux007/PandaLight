@@ -2,7 +2,7 @@
 #define ZoneEclairage_h
 #include <Arduino.h> // on définit Arduino ici donc on ne le redéclare pas dans le cpp
 #include <OneButton.h> // on utilise OneButton et pas OneButtonTiny pour les callbacks dans la classe elle-même
-// #include <FastLED.h>
+#include <FastLED.h>
 
 #define RELAIS_ON true
 #define RELAIS_OFF false
@@ -11,6 +11,7 @@
 #define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG 120000ul // 5h, 5 × 60 minutes × 60s × 1000ms. Temps avant que l'éclairage s'éteigne tout seul en mode long.
 #define TEMPS_AVANT_EXTENCTION 300000ul // 5mn × 60 × 1000ms. Temps ou l'on attend un nouveau clique sur le bouton pour relancer le minuteur. */
 
+// temps courts pour les testes du montage !
 #define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT 30000ul // 30 secondes
 #define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG 60000 // 1 minutes
 #define TEMPS_AVANT_EXTENCTION 10000 // 10s
@@ -18,8 +19,9 @@
 class ZoneEclairage
 {
   private:
-    // déclaration de l'instance du bouton
+    // déclaration de l'instance du bouton et de la led
     OneButton bouton;
+    CRGB & led;
     // minuteur d'extinction
     uint32_t tempsPrecedentClique;
     // machine à état
@@ -38,7 +40,7 @@ class ZoneEclairage
     void checkEventClicLong(void);
 
   public:
-    ZoneEclairage(byte, byte); // Constructeur
+    ZoneEclairage(byte, byte, CRGB &); // Constructeur
     void update(void); // fonction a appeller à chaque loop, pour gérer le btn et la machine à état
 };
 

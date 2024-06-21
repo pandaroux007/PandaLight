@@ -1,8 +1,9 @@
 #include <ZoneEclairage.h>
 
 // définition du constructeur
-ZoneEclairage::ZoneEclairage(byte pinBouton, byte pinRelais)
-: bouton(pinBouton, false /*bp actif sur HIGH puisque pas de PULLUP (LOW par defaut)*/)
+ZoneEclairage::ZoneEclairage(byte pinBouton, byte pinRelais, CRGB & led)
+: bouton(pinBouton, false /*bp actif sur HIGH puisque pas de PULLUP (LOW par defaut)*/),
+led(led)
 {
   // on met la pin du relais en sortie et on enregistre la pin en question
   this->pinRelais = pinRelais;
@@ -79,10 +80,12 @@ void ZoneEclairage::update()
   switch (etats)
   {
   case ZoneEclairage::REPOS:
+    led.setRGB(0, 0, 0);
     setRelais(RELAIS_OFF); // on éteint le relais
     break;
   case ZoneEclairage::ALLUME_COURT:
     setRelais(RELAIS_ON); // on allume le relais
+    led.setRGB(255, 0, 0);
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT - TEMPS_AVANT_EXTENCTION))
     {
@@ -93,6 +96,7 @@ void ZoneEclairage::update()
     break;
   case ZoneEclairage::ALLUME_VERS_REPOS:
     setRelais(RELAIS_ON); // on allume le relais
+    led.setRGB(0, 255, 0);
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT)) // Si le temps "long" est écoulé,
     {
@@ -103,6 +107,7 @@ void ZoneEclairage::update()
     break;
   case ZoneEclairage::ALLUME_LONG:
     setRelais(RELAIS_ON); // on allume le relais
+    led.setRGB(0, 0, 255);
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG) // si le temps long est passé
     {
@@ -117,6 +122,8 @@ void ZoneEclairage::update()
     etats = REPOS;
     break;
   }
+
+  FastLED.show(); // on affiche les changement sur la led
 }
 
 // Comme on utilise souvent la gestion de l'état du relais, une petite fonction ne mange pas de pain ;)
