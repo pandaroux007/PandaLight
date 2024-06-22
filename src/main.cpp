@@ -25,9 +25,9 @@ void setup(void)
   Serial.print(F("Temps de fonctionnement d'une lampe en mode court : ")); Serial.print(TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT); Serial.println(F("ms"));
   Serial.print(F("Temps de fonctionnement d'une lampe en mode long  : ")); Serial.print(TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG); Serial.println(F("ms"));
   // initialisation des leds WS2812B
-  FastLED.addLeds<WS2812B, PIN_LEDS, GRB /*RGB par défaut, ce qui inversait le vert et le rouge sur mon bandeau!*/>(leds, NBR_LEDS);
+  FastLED.addLeds<WS2812B, PIN_LEDS, GRB >(leds, NBR_LEDS); //RGB par défaut, ce qui inversait le vert et le rouge sur mon bandeau!
   Serial.println(F("LEDs WS2812B initialisées!\n"));
-  delay(1000); // stop 1s
+  delay(1000); 
 }
 
 void loop(void)
