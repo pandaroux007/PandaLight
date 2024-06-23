@@ -1,12 +1,12 @@
-#include <ZoneEclairage.h>
+#include "ZoneEclairage.h"
 
 // définition du constructeur
-ZoneEclairage::ZoneEclairage(byte pinBouton, byte pinRelais, CRGB & passedLed)
+ZoneEclairage::ZoneEclairage(byte pinBouton, byte passedPinRelais, CRGB & passedLed)
 : bouton(pinBouton, false ), // bp actif sur HIGH (LOW par defaut)
 led(passedLed)
 {
   // on met la pin du relais en sortie et on enregistre la pin en question
-  pinRelais = pinRelais;
+  pinRelais = passedPinRelais;
   pinMode(pinRelais, OUTPUT);
   // on attache le clique à la gestion de l'événement,
   // c'est à dire que fait-on dans quel état (utilisation fonction lambda)
@@ -19,13 +19,10 @@ led(passedLed)
       ZoneEclairage * cible= (ZoneEclairage *)instance;
       cible->checkEventClicLong();
   }, this);
-
-  FastLED.getBrightness();
-
 }
 
 // définition des fonctions de gestion des événements pour les transitions
-void ZoneEclairage::checkEventClic() // fonction appelée quand un clique simple est effectué
+void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique simple est effectué
 {
   Serial.print(F("Clique ! >> "));
   switch (etats)
@@ -48,7 +45,7 @@ void ZoneEclairage::checkEventClic() // fonction appelée quand un clique simple
   }
 }
 
-void ZoneEclairage::checkEventClicLong() // fonction appelée quand un clique long est effectué
+void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un clique long est effectué
 {
   Serial.print(F("Clic Long ! >> "));
   switch (etats)
@@ -77,7 +74,7 @@ void ZoneEclairage::checkEventClicLong() // fonction appelée quand un clique lo
   }
 }
 
-void ZoneEclairage::update()
+void ZoneEclairage::update(void) // fonction à appeller le plus souvent possible
 {
   bouton.tick(); // on met à jour l'état du bouton
   // gestion relais
@@ -95,7 +92,6 @@ void ZoneEclairage::update()
     {
       Serial.println(F("Fin proche du temps court !"));
       etats = ZoneEclairage::ALLUME_VERS_REPOS;
-     // break;
     }
     break;
   case ZoneEclairage::ALLUME_VERS_REPOS:
@@ -106,7 +102,6 @@ void ZoneEclairage::update()
     {
       Serial.println(F("Fin du temps court, on passe en mode REPOS!"));
       etats = ZoneEclairage::REPOS; // alors on passe en mode repos
-     // break;
     }
     break;
   case ZoneEclairage::ALLUME_LONG:
@@ -117,7 +112,6 @@ void ZoneEclairage::update()
     {
       Serial.println(F("Fin du temps long, on passe en mode REPOS!"));
       etats = ZoneEclairage::REPOS; // alors on éteint tout (ouais là on s'embête pas à faire un rappel, le temps est suffisament long)
-     // break;
     }
     break;
   default:
@@ -133,10 +127,10 @@ void ZoneEclairage::update()
 // Comme on utilise souvent la gestion de l'état du relais, une petite fonction ne mange pas de pain ;)
 void ZoneEclairage::setRelais(bool etatSouhaite)
 {
-  //if(etatSouhaite != etatCourantRelais)
- // {
+  if(etatSouhaite != etatCourantRelais)
+  {
     etatCourantRelais = etatSouhaite;
     digitalWrite(pinRelais, etatSouhaite); // on applique les changements, puis on le print à la ligne suivante
     Serial.print(F("Relais défini sur ")); Serial.println(etatSouhaite);
- // }
+  }
 }
