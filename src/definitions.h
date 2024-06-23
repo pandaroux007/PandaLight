@@ -4,7 +4,7 @@
 // #define PIN_BUZZER 13 // à intégrer plus tard
 // ---------- leds RGB
 #define PIN_LEDS 5
-#define NBR_LEDS 1
+#define NBR_LEDS 3
 // index des leds
 #define INDEX_LED_GARAGE 0
 #define INDEX_LED_VELO 1
