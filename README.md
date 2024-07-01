@@ -13,15 +13,15 @@ Des boutons tactiles de type `TTP223` seront disposés un peu partout, dans des 
 > Dés que je projet sera terminé, j'ajouterai dans le README.md un lien vers son topic de présentation sur le forum Arduino francophone. Vous y trouverez des photos du projet installé et fonctionnel ainsi que des détails sur le code.
 
 ## Licence & Dépendances
-Ce projet est sous [licence BSL 1.0](https://choosealicense.com/licenses/bsl-1.0/) (Boost Software License 1.0).
-J'autorise quiconque à utiliser, modifier et commercialiser le code, tant que l'auteur **Pandaroux007** est mentionné.
+Ce projet est sous [Licence MIT](LICENCE.txt) - [The MIT License (MIT)](https://choosealicense.com/licenses/mit/).
+Retrouvez les détails de cette licence sur le site officiel : https://opensource.org/licenses/MIT.
 
-Dépendances actuelles :
-- fastled/FastLED, version 3.6.0
-- mathertel/OneButton, version 2.5.0
-
-Et à ajouter plus tard :
-- CMB27/ModbusRTUSlave, version 2.0.5
+Dépendances actuelles (voir fichier [platformio.ini](platformio.ini)):
+- fastled/FastLED@^3.6.0
+- mathertel/OneButton@^2.5.0
+- marcoschwartz/LiquidCrystal_I2C@^1.1.4
+- malokhvii-eduard/arduino-bme280@^1.0.6
+- cmb27/ModbusRTUSlave@^2.0.6
 
 ## Potentielles améliorations
 J'envisage l'ajout d'une communication `RS485` avec le - futur - système domotique Arduino de chez moi, dont l'un des terminaux de commande sera situé à la cave (bah oui, mon petit espace de travail ne sera pas épargné!). Une partie des gaines sous la dalle du garage sortant dans celle-ci, il est parfaitement possible de relier le système de gestion du garage avec le système domotique, via une liaison `MODBUS`.

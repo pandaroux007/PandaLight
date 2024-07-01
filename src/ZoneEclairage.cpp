@@ -1,24 +1,12 @@
 #include "ZoneEclairage.h"
 
 // définition du constructeur
-ZoneEclairage::ZoneEclairage(byte pinBouton, byte passedPinRelais, CRGB & passedLed)
-: bouton(pinBouton, false ), // bp actif sur HIGH (LOW par defaut)
+ZoneEclairage::ZoneEclairage(byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, uint32_t passedCouleur)
+: bouton(passedPinBouton, false), // bp actif sur HIGH (LOW par defaut)
 led(passedLed)
 {
-  // on met la pin du relais en sortie et on enregistre la pin en question
   pinRelais = passedPinRelais;
-  pinMode(pinRelais, OUTPUT);
-  // on attache le clique à la gestion de l'événement,
-  // c'est à dire que fait-on dans quel état (utilisation fonction lambda)
-  bouton.attachClick([](void *instance) {
-      ZoneEclairage * cible= (ZoneEclairage *)instance;
-      cible->checkEventClic();
-  }, this);
-  // et on fait pareil pour le clique long
-  bouton.attachLongPressStart([](void *instance) {
-      ZoneEclairage * cible= (ZoneEclairage *)instance;
-      cible->checkEventClicLong();
-  }, this);
+  couleur = passedCouleur;
 }
 
 // définition des fonctions de gestion des événements pour les transitions
@@ -74,6 +62,22 @@ void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un cliqu
   }
 }
 
+void ZoneEclairage::begin(void)
+{
+  pinMode(pinRelais, OUTPUT);
+  // on attache le clique à la gestion de l'événement,
+  // c'est à dire que fait-on dans quel état (utilisation fonction lambda)
+  bouton.attachClick([](void *instance) {
+      ZoneEclairage * cible= (ZoneEclairage *)instance;
+      cible->checkEventClic();
+  }, this);
+  // et on fait pareil pour le clique long
+  bouton.attachLongPressStart([](void *instance) {
+      ZoneEclairage * cible= (ZoneEclairage *)instance;
+      cible->checkEventClicLong();
+  }, this);
+}
+
 void ZoneEclairage::update(void) // fonction à appeller le plus souvent possible
 {
   bouton.tick(); // on met à jour l'état du bouton
@@ -81,12 +85,12 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
   switch (etats)
   {
   case ZoneEclairage::REPOS:
-    led.setRGB(0, 0, 0);
     setRelais(RELAIS_OFF); // on éteint le relais
+    ledClignoterDoucement();
     break;
   case ZoneEclairage::ALLUME_COURT:
-    led.setRGB(255, 0, 0);
-    setRelais(RELAIS_ON); // on allume le relais    
+    setRelais(RELAIS_ON); // on allume le relais
+    led = couleur;
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT - TEMPS_AVANT_EXTENCTION))
     {
@@ -95,8 +99,8 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     }
     break;
   case ZoneEclairage::ALLUME_VERS_REPOS:
-    led.setRGB(0, 255, 0);
-    setRelais(RELAIS_ON); // on allume le relais    
+    setRelais(RELAIS_ON); // on allume le relais
+    ledClignoterRapidement();
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT)) // Si le temps "long" est écoulé,
     {
@@ -106,7 +110,7 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     break;
   case ZoneEclairage::ALLUME_LONG:
     setRelais(RELAIS_ON); // on allume le relais
-    led.setRGB(0, 0, 255);
+    led = couleur;
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG) // si le temps long est passé
     {
@@ -132,5 +136,44 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
     etatCourantRelais = etatSouhaite;
     digitalWrite(pinRelais, etatSouhaite); // on applique les changements, puis on le print à la ligne suivante
     Serial.print(F("Relais défini sur ")); Serial.println(etatSouhaite);
+  }
+}
+
+// Fonctions de gestion des Leds rgb
+void ZoneEclairage::ledClignoterDoucement(void)
+{
+  EVERY_N_MILLISECONDS(1)
+  {  
+    if (sensIncrementation == incrementationLumLed)
+    {
+      if (luminosite == 255)
+      {
+        sensIncrementation = false;
+        luminosite = 254;
+      }
+      else luminosite++;
+    }
+    else // si le sens est en décrémentation
+    {
+      if (luminosite == 0)
+      {
+        sensIncrementation = true;
+        luminosite = 1;
+      }
+      else luminosite--;
+    }
+
+    led = CHSV(couleur, 255, luminosite);
+  }
+}
+
+void ZoneEclairage::ledClignoterRapidement(void)
+{
+  EVERY_N_MILLISECONDS(500) // une demie seconde
+  {
+    if(luminosite > 1) luminosite = 0; // Si on est pas à 0, on met la luminosité à 0
+    else luminosite = 255; // Sinon si on est à 0, on met la luminosité au maximum
+
+    led = CHSV(couleur, 255, luminosite);
   }
 }
