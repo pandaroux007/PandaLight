@@ -1,7 +1,7 @@
 #include "ZoneEclairage.h"
 
 // définition du constructeur
-ZoneEclairage::ZoneEclairage(byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, uint32_t passedCouleur)
+ZoneEclairage::ZoneEclairage(byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
 : bouton(passedPinBouton, false), // bp actif sur HIGH (LOW par defaut)
 led(passedLed)
 {
@@ -163,7 +163,9 @@ void ZoneEclairage::ledClignoterDoucement(void)
       else luminosite--;
     }
 
-    led = CHSV(couleur, 255, luminosite);
+    //led = CHSV(couleur, 255, luminosite);
+    led = couleur;
+    led.nscale8(luminosite);
   }
 }
 
@@ -174,6 +176,8 @@ void ZoneEclairage::ledClignoterRapidement(void)
     if(luminosite > 1) luminosite = 0; // Si on est pas à 0, on met la luminosité à 0
     else luminosite = 255; // Sinon si on est à 0, on met la luminosité au maximum
 
-    led = CHSV(couleur, 255, luminosite);
+    //led = CHSV(couleur, 255, luminosite);
+    led = couleur;
+    led.nscale8(luminosite);
   }
 }

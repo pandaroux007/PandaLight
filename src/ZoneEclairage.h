@@ -39,7 +39,7 @@ class ZoneEclairage
     byte pinRelais;
     bool etatCourantRelais;
     // variables et fonction des clignotements des leds rgb
-    uint32_t couleur;
+    CRGB couleur;
     bool sensIncrementation = incrementationLumLed;
     byte luminosite;
     void ledClignoterDoucement(void);
@@ -49,7 +49,7 @@ class ZoneEclairage
     void checkEventClicLong(void);
 
   public:
-    ZoneEclairage(byte, byte, CRGB &, uint32_t); // Constructeur
+    ZoneEclairage(byte, byte, CRGB &, CRGB); // Constructeur
     void update(void); // fonction a appeller à chaque loop, pour gérer le btn et la machine à état
     void begin(void);
 };
