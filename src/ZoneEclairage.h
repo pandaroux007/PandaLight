@@ -27,6 +27,8 @@ class ZoneEclairage
     CRGB & led;
     // minuteur d'extinction
     uint32_t tempsPrecedentClique;
+    // variable pour gérer le clignotement des leds
+    uint32_t tempsPrecedentClignotement;
     // machine à état
     enum {
       ALLUME_COURT,

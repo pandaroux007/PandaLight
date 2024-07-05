@@ -142,8 +142,8 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
 // Fonctions de gestion des Leds rgb
 void ZoneEclairage::ledClignoterDoucement(void)
 {
-  EVERY_N_MILLISECONDS(1)
-  {  
+  if((millis() - tempsPrecedentClignotement) >= 1ul) // une milliseconde
+  {
     if (sensIncrementation == incrementationLumLed)
     {
       if (luminosite == 255)
@@ -166,12 +166,14 @@ void ZoneEclairage::ledClignoterDoucement(void)
     //led = CHSV(couleur, 255, luminosite);
     led = couleur;
     led.nscale8(luminosite);
+
+    tempsPrecedentClignotement = millis();
   }
 }
 
 void ZoneEclairage::ledClignoterRapidement(void)
 {
-  EVERY_N_MILLISECONDS(500) // une demie seconde
+  if((millis() - tempsPrecedentClignotement) >= 500ul) // une demie seconde
   {
     if(luminosite > 1) luminosite = 0; // Si on est pas à 0, on met la luminosité à 0
     else luminosite = 255; // Sinon si on est à 0, on met la luminosité au maximum
@@ -179,5 +181,7 @@ void ZoneEclairage::ledClignoterRapidement(void)
     //led = CHSV(couleur, 255, luminosite);
     led = couleur;
     led.nscale8(luminosite);
+
+    tempsPrecedentClignotement = millis();
   }
 }
