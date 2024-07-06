@@ -36,6 +36,7 @@ void setup(void)
   lcd.init();
   lcd.backlight();
   lcd.clear();
+  lcd.home();
   lcd.createChar(1, rond_en_exposant_symbole_degres_celsius);
   Serial.println(F(">> Écran LCD 1602 I2C initialisé!"));
   // Initialisation du capteur BME280
@@ -54,11 +55,7 @@ void loop(void)
   eclairageSpotGuirlande.update();
   // gestion affichage température
   EVERY_N_SECONDS(1) // en phase de test
-  { // affichage données sur moniteur série
-    Serial.print(F("T: ")); Serial.print(bme.getTemperature()); Serial.print(F("°C\t"));
-    Serial.print(F("H: ")); Serial.print(bme.getHumidity()); Serial.print(F("%\t"));
-    Serial.print(F("P: ")); Serial.print(bme.getPressure() / 100.0); Serial.println(F("hPa\t"));
-    // affichage données sur écran lcd
+  { // affichage données sur écran lcd
     lcd.print(F("T: ")); lcd.print(bme.getTemperature()); lcd.print(char(1)); lcd.print(F("C"));
     lcd.print(F("H: ")); lcd.print(bme.getHumidity()); lcd.print(F("%"));
     lcd.print(F("P: ")); lcd.print(bme.getPressure() / 100.0); lcd.print(F("hPa"));
