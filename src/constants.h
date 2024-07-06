@@ -7,6 +7,18 @@
 #define NBR_COLONNES 16
 #define NBR_LIGNES 2
 
+byte rond_en_exposant_symbole_degres_celsius[8] =
+{
+  0b01100,
+  0b10010,
+  0b10010,
+  0b01100,
+  0b00000,
+  0b00000,
+  0b00000,
+  0b00000
+};
+
 // couleurs des leds en fontion de chaque zone
 #define COULEUR_ZONE_GARAGE 0xFF0000 // rouge
 #define COULEUR_ZONE_VELO 0x00FF00 // vert
