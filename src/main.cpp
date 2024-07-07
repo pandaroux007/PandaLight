@@ -35,6 +35,7 @@ void setup(void)
   // Initialisation de l'écran LCD
   lcd.init();
   lcd.backlight();
+  lcd.setContrast(255);
   lcd.clear();
   lcd.home();
   lcd.createChar(1, rond_en_exposant_symbole_degres_celsius);
@@ -53,7 +54,7 @@ void loop(void)
   eclairageSpotGarage.update();
   eclairageSpotVelo.update();
   eclairageSpotGuirlande.update();
-  // gestion affichage température
+  // gestion affichage
   EVERY_N_SECONDS(1) // en phase de test
   { // affichage données sur moniteur série
     Serial.print(F("T: ")); Serial.print(bme.getTemperature()); Serial.print(F("°C\t"));

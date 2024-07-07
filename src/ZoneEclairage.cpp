@@ -28,7 +28,8 @@ void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique si
     etats = ZoneEclairage::ALLUME_COURT; // on attribue le nouvel état
     break;
   default: // Si état inconnu, bah on le print et on sort.
-    Serial.println(F("Erreur dans switch/case checkEventClic !"));
+    Serial.println(F("\t\tERREUR >> Etat inconnu dans checkEventClic !, on bascule en mode REPOS"));
+    etats = ZoneEclairage::REPOS;
     break;
   }
 }
@@ -56,8 +57,8 @@ void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un cliqu
     etats = ZoneEclairage::ALLUME_COURT; // alors on relance un temps court
     break;
   default: // Si état inconnu, bah on le print et on sort.
-    Serial.println(F("Etat inconnu dans checkEventClicLong !, on bascule en mode REPOS"));
-    etats = ZoneEclairage::REPOS; 
+    Serial.println(F("\t\tERREUR >> Etat inconnu dans checkEventClicLong !, on bascule en mode REPOS"));
+    etats = ZoneEclairage::REPOS;
     break;
   }
 }
@@ -119,7 +120,7 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     }
     break;
   default:
-    Serial.println(F("État inconnu dans update! Mode REPOS par défaut"));
+    Serial.println(F("\t\tERREUR >> État inconnu dans update! Mode REPOS par défaut"));
     // setRelais(RELAIS_OFF); // pas besoin ici puis qu'au prochain tour de loop on verra qu'on est en REPOS et on coupera le relais et la led
     etats = ZoneEclairage::REPOS;
     break;
@@ -163,8 +164,7 @@ void ZoneEclairage::ledClignoterDoucement(void)
       else luminosite--;
     }
 
-    //led = CHSV(couleur, 255, luminosite);
-    led = couleur;
+    if(led != couleur) led = couleur;
     led.nscale8(luminosite);
 
     tempsPrecedentClignotement = millis();
@@ -178,8 +178,7 @@ void ZoneEclairage::ledClignoterRapidement(void)
     if(luminosite > 1) luminosite = 0; // Si on est pas à 0, on met la luminosité à 0
     else luminosite = 255; // Sinon si on est à 0, on met la luminosité au maximum
 
-    //led = CHSV(couleur, 255, luminosite);
-    led = couleur;
+    if(led != couleur) led = couleur;
     led.nscale8(luminosite);
 
     tempsPrecedentClignotement = millis();
