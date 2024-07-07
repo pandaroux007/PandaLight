@@ -10,9 +10,9 @@
 #define incrementationLumLed true
 #define decrementationLumLed false
 
-/* #define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT 3600000ul // 1h, 60 minutes × 60s × 1000ms. Temps avant que l'éclairage s'éteigne tout seul en mode 1H.
-#define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG 120000ul // 5h, 5 × 60 minutes × 60s × 1000ms. Temps avant que l'éclairage s'éteigne tout seul en mode long.
-#define TEMPS_AVANT_EXTENCTION 300000ul // 5mn × 60 × 1000ms. Temps ou l'on attend un nouveau clique sur le bouton pour relancer le minuteur. */
+/* #define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT 3600000ul // 1h (60mn × 60s × 1000ms) >> Temps avant que l'éclairage s'éteigne tout seul en mode 1H.
+#define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG 120000ul // 5h (5 × 60mn × 60s × 1000ms) >> Temps avant que l'éclairage s'éteigne tout seul en mode long.
+#define TEMPS_AVANT_EXTENCTION 300000ul // 5mn (5mn × 60s × 1000ms) >> Temps ou l'on attend un nouveau clique sur le bouton pour relancer le minuteur. */
 
 // temps courts pour les testes du montage !
 #define TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT 30000ul // 30 secondes
@@ -22,6 +22,7 @@
 class ZoneEclairage
 {
   private:
+    const char * nom;
     // déclaration de l'instance du bouton et de la led
     OneButton bouton;
     CRGB & led;
@@ -51,7 +52,7 @@ class ZoneEclairage
     void checkEventClicLong(void);
 
   public:
-    ZoneEclairage(byte, byte, CRGB &, CRGB); // Constructeur
+    ZoneEclairage(const char *, byte, byte, CRGB &, CRGB); // Constructeur
     void update(void); // fonction a appeller à chaque loop, pour gérer le btn et la machine à état
     void begin(void);
 };

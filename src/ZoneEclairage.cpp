@@ -1,18 +1,19 @@
 #include "ZoneEclairage.h"
 
 // définition du constructeur
-ZoneEclairage::ZoneEclairage(byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
+ZoneEclairage::ZoneEclairage(const char * passedNom, byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
 : bouton(passedPinBouton, false), // bp actif sur HIGH (LOW par defaut)
 led(passedLed)
 {
   pinRelais = passedPinRelais;
   couleur = passedCouleur;
+  nom = passedNom;
 }
 
 // définition des fonctions de gestion des événements pour les transitions
 void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique simple est effectué
 {
-  Serial.print(F("Clique ! >> "));
+  Serial.print(nom); Serial.print(F("\tClique ! >> "));
   switch (etats)
   {
   case ZoneEclairage::ALLUME_COURT: Serial.println(F("On était en ALLUME_COURT, on ne fait rien")); break; // Si la lampe est déjà allumée, alors on ne fait rien, on sort...
@@ -36,7 +37,7 @@ void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique si
 
 void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un clique long est effectué
 {
-  Serial.print(F("Clic Long ! >> "));
+  Serial.print(nom); Serial.print(F("\tClic Long ! >> "));
   switch (etats)
   {
   case ZoneEclairage::ALLUME_COURT: // si on était allumé sur un temps court,
@@ -136,7 +137,7 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
   {
     etatCourantRelais = etatSouhaite;
     digitalWrite(pinRelais, etatSouhaite); // on applique les changements, puis on le print à la ligne suivante
-    Serial.print(F("Relais défini sur ")); Serial.println(etatSouhaite);
+    Serial.print(nom); Serial.print(F(" >> relais défini sur ")); Serial.println(etatSouhaite);
   }
 }
 
