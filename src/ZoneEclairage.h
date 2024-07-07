@@ -31,7 +31,8 @@ class ZoneEclairage
     // variable pour gérer le clignotement des leds
     uint32_t tempsPrecedentClignotement;
     // machine à état
-    enum {
+    enum etatsZoneEclairage : uint8_t
+    {
       ALLUME_COURT,
       ALLUME_LONG,
       ALLUME_VERS_REPOS,
@@ -55,6 +56,7 @@ class ZoneEclairage
     ZoneEclairage(const char *, byte, byte, CRGB &, CRGB); // Constructeur
     void update(void); // fonction a appeller à chaque loop, pour gérer le btn et la machine à état
     void begin(void);
+    bool getEtatCourant(void);
 };
 
 #endif //ZoneEclairage_h

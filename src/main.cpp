@@ -57,7 +57,7 @@ void loop(void)
   eclairageSpotVelo.update();
   eclairageSpotGuirlande.update();
   // gestion machine à état de l'affichage des données
-  EVERY_N_SECONDS(3)
+  EVERY_N_SECONDS(5) // 5 au lieu de 3 pour le débug
   {
     switch (etatAffichage)
     {
@@ -66,9 +66,9 @@ void loop(void)
       etatAffichage = ETAT_ZONES;
       // affichage données météo sur écran lcd
       lcd.clear(); lcd.home();
-      lcd.print(F("T:")); lcd.print(bme.getTemperature()); lcd.print(char(1)); lcd.print(F("C"));
+      lcd.print(F("T: ")); lcd.print(bme.getTemperature()); lcd.print(char(1)); lcd.print(F("C"));
       lcd.setCursor(0,1);
-      lcd.print(F("H:")); lcd.print(bme.getHumidity()); lcd.print(F("%"));
+      lcd.print(F("H: ")); lcd.print(bme.getHumidity()); lcd.print(F("%"));
       // affichage données sur moniteur série
       Serial.print(F("T: ")); Serial.print(bme.getTemperature()); Serial.print(F("°C\t"));
       Serial.print(F("H: ")); Serial.print(bme.getHumidity()); Serial.print(F("%\t"));
@@ -77,8 +77,12 @@ void loop(void)
     case ETAT_ZONES:
       Serial.println(F("Mode ETAT_ZONES"));
       etatAffichage = METEO;
+      // affichage de l'état (allumé ou éteint) de chacune des trois zone (vélo, garage, et guirlande)
       lcd.clear(); lcd.home();
-      // ici affichage de l'état (allumé ou éteint) de chacune des trois zone (vélo, garage, et guirlande)
+      lcd.print(F("VELO:")); lcd.print(eclairageSpotVelo.getEtatCourant());
+      lcd.print(F(", GARAGE:")); lcd.print(eclairageSpotGarage.getEtatCourant());
+      lcd.setCursor(0, 1);
+      lcd.print(F("  GUIRLANDE:")); lcd.print(eclairageSpotGuirlande.getEtatCourant());
       break;
     default:
       Serial.println(F("\t\tERREUR >> etat inconnu dans loop affichage! Mode METEO par défaut"));

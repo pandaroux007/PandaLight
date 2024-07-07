@@ -141,6 +141,29 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
   }
 }
 
+bool ZoneEclairage::getEtatCourant(void)
+{
+  switch (etats)
+  {
+  case ZoneEclairage::REPOS:
+    return(false); //0
+    break;
+  case ZoneEclairage::ALLUME_COURT:
+    return(true); //1
+    break;
+  case ZoneEclairage::ALLUME_LONG:
+    return(true); //1
+    break;
+  case ZoneEclairage::ALLUME_VERS_REPOS:
+    return(true); //1
+    break;
+  default:
+    Serial.print(nom); Serial.print(F("\t\tERREUR >> Etat inconnu dans getEtatCourant, impossible de retourner l'état courant - 0 par défaut"));
+    return(false);
+    break;
+  }
+}
+
 // Fonctions de gestion des Leds rgb
 void ZoneEclairage::ledClignoterDoucement(void)
 {
