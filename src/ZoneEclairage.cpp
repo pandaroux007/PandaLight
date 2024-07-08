@@ -58,7 +58,7 @@ void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un cliqu
     etats = ZoneEclairage::ALLUME_COURT; // alors on relance un temps court
     break;
   default: // Si état inconnu, bah on le print et on sort.
-    Serial.println(F("\t\tERREUR >> Etat inconnu dans checkEventClicLong !, on bascule en mode REPOS"));
+    Serial.println(F("ERREUR >> Etat inconnu dans checkEventClicLong! Mode REPOS par défaut"));
     etats = ZoneEclairage::REPOS;
     break;
   }
@@ -96,7 +96,7 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT - TEMPS_AVANT_EXTENCTION))
     {
-      Serial.println(F("Fin proche du temps court !"));
+      Serial.print(nom); Serial.println(F(" >> Fin proche du temps court !"));
       etats = ZoneEclairage::ALLUME_VERS_REPOS;
     }
     break;
@@ -106,7 +106,7 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT)) // Si le temps "long" est écoulé,
     {
-      Serial.println(F("Fin du temps court, on passe en mode REPOS!"));
+      Serial.print(nom); Serial.println(F(" >> Fin du temps court, on passe en mode REPOS!"));
       etats = ZoneEclairage::REPOS; // alors on passe en mode repos
     }
     break;
@@ -116,12 +116,12 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG) // si le temps long est passé
     {
-      Serial.println(F("Fin du temps long, on passe en mode REPOS!"));
+      Serial.print(nom); Serial.println(F(" >> Fin du temps long, on passe en mode REPOS!"));
       etats = ZoneEclairage::REPOS; // alors on éteint tout (ouais là on s'embête pas à faire un rappel, le temps est suffisament long)
     }
     break;
   default:
-    Serial.println(F("\t\tERREUR >> État inconnu dans update! Mode REPOS par défaut"));
+    Serial.println(F("ERREUR >> État inconnu dans update! Mode REPOS par défaut"));
     // setRelais(RELAIS_OFF); // pas besoin ici puis qu'au prochain tour de loop on verra qu'on est en REPOS et on coupera le relais et la led
     etats = ZoneEclairage::REPOS;
     break;
@@ -158,7 +158,7 @@ bool ZoneEclairage::getEtatCourant(void)
     return(true); //1
     break;
   default:
-    Serial.print(nom); Serial.print(F("\t\tERREUR >> Etat inconnu dans getEtatCourant, impossible de retourner l'état courant - 0 par défaut"));
+    Serial.print(nom); Serial.print(F(" ERREUR >> Etat inconnu dans getEtatCourant, impossible de retourner l'état courant - 0 par défaut"));
     return(false);
     break;
   }

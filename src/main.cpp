@@ -8,14 +8,45 @@
 #include "pinout.h"
 
 LiquidCrystal_I2C lcd(0x27,16,2);
-enum etatsAffichage {METEO, ETAT_ZONES};
+enum etatsAffichage : uint8_t {METEO, ETAT_ZONES};
 etatsAffichage etatAffichage = METEO;
+
 Bme280TwoWire bme;
 CRGB leds[NBR_LEDS];
 
 ZoneEclairage eclairageSpotGarage("garage", PIN_BOUTON_GARAGE, PIN_RELAIS_GARAGE, leds[INDEX_LED_GARAGE], COULEUR_ZONE_GARAGE);
 ZoneEclairage eclairageSpotVelo("velo" ,PIN_BOUTON_VELO, PIN_RELAIS_VELO, leds[INDEX_LED_VELO], COULEUR_ZONE_VELO);
 ZoneEclairage eclairageSpotGuirlande("guirlande", PIN_BOUTON_GUIRLANDE, PIN_RELAIS_GUIRLANDE, leds[INDEX_LED_GUIRLANDE], COULEUR_ZONE_GUIRLANDE);
+
+void gestionMachineAEtatAffichage(void)
+{
+  switch (etatAffichage)
+  {
+  case METEO:
+    Serial.println(F("Mode METEO"));
+    etatAffichage = ETAT_ZONES;
+    // affichage données météo sur écran lcd
+    lcd.clear(); lcd.home();
+    lcd.print(F("T: ")); lcd.print(bme.getTemperature()); lcd.print(char(1)); lcd.print(F("C"));
+    lcd.setCursor(0,1);
+    lcd.print(F("H: ")); lcd.print(bme.getHumidity()); lcd.print(F("%"));
+    break;
+  case ETAT_ZONES:
+    Serial.println(F("Mode ETAT_ZONES"));
+    etatAffichage = METEO;
+    // affichage de l'état (allumé ou éteint) de chacune des trois zone (vélo, garage, et guirlande)
+    lcd.clear(); lcd.home();
+    lcd.print(F("VELO:")); lcd.print(eclairageSpotVelo.getEtatCourant());
+    lcd.print(F(", GARAGE:")); lcd.print(eclairageSpotGarage.getEtatCourant());
+    lcd.setCursor(0, 1);
+    lcd.print(F("  GUIRLANDE:")); lcd.print(eclairageSpotGuirlande.getEtatCourant());
+    break;
+  default:
+    Serial.println(F("ERREUR >> etat inconnu dans loop affichage! Mode METEO par défaut"));
+    etatAffichage = METEO;
+    break;
+  }
+}
 
 void setup(void)
 {
@@ -47,7 +78,9 @@ void setup(void)
   bme.setSettings(Bme280Settings::weatherMonitoring());
   Serial.println(F(">> Capteur BME280 I2C initialisé!"));
   Serial.println(F("-----------------------------------------------------------\nFin des initalisations!"));
+  
   delay(1000);
+  gestionMachineAEtatAffichage();
 }
 
 void loop(void)
@@ -57,37 +90,5 @@ void loop(void)
   eclairageSpotVelo.update();
   eclairageSpotGuirlande.update();
   // gestion machine à état de l'affichage des données
-  EVERY_N_SECONDS(5) // 5 au lieu de 3 pour le débug
-  {
-    switch (etatAffichage)
-    {
-    case METEO:
-      Serial.println(F("Mode METEO"));
-      etatAffichage = ETAT_ZONES;
-      // affichage données météo sur écran lcd
-      lcd.clear(); lcd.home();
-      lcd.print(F("T: ")); lcd.print(bme.getTemperature()); lcd.print(char(1)); lcd.print(F("C"));
-      lcd.setCursor(0,1);
-      lcd.print(F("H: ")); lcd.print(bme.getHumidity()); lcd.print(F("%"));
-      // affichage données sur moniteur série
-      Serial.print(F("T: ")); Serial.print(bme.getTemperature()); Serial.print(F("°C\t"));
-      Serial.print(F("H: ")); Serial.print(bme.getHumidity()); Serial.print(F("%\t"));
-      Serial.print(F("P: ")); Serial.print(bme.getPressure() / 100.0); Serial.println(F("hPa"));
-      break;
-    case ETAT_ZONES:
-      Serial.println(F("Mode ETAT_ZONES"));
-      etatAffichage = METEO;
-      // affichage de l'état (allumé ou éteint) de chacune des trois zone (vélo, garage, et guirlande)
-      lcd.clear(); lcd.home();
-      lcd.print(F("VELO:")); lcd.print(eclairageSpotVelo.getEtatCourant());
-      lcd.print(F(", GARAGE:")); lcd.print(eclairageSpotGarage.getEtatCourant());
-      lcd.setCursor(0, 1);
-      lcd.print(F("  GUIRLANDE:")); lcd.print(eclairageSpotGuirlande.getEtatCourant());
-      break;
-    default:
-      Serial.println(F("\t\tERREUR >> etat inconnu dans loop affichage! Mode METEO par défaut"));
-      etatAffichage = METEO;
-      break;
-    }
-  }
+  EVERY_N_SECONDS(5) gestionMachineAEtatAffichage(); // 5s au lieu de 3s - pour le débug
 }
