@@ -45,5 +45,5 @@ Flash: [========  ]  75.4% (used 23168 bytes from 30720 bytes)
 ```
 (en revanche une analyse approfondie avec `PlatformIO > PIO Home > Inspect` indique ceci : )
 <div align="center">
-    <img src="memory_use.png" alt="utilisation de la mémoire de la carte Arduino NANO sur PIO Home > Inspect" style="border-radius:15px"/>
+<img src="memory_use.png" alt="utilisation de la mémoire de la carte Arduino NANO sur PIO Home > Inspect"/>
 </div>
