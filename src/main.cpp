@@ -104,7 +104,7 @@ void loop(void)
   holdingRegisters[INDEX_ETAT_COURANT_GARAGE] = eclairageSpotGarage.getEtatCourant();
   holdingRegisters[INDEX_ETAT_COURANT_VELO] = eclairageSpotVelo.getEtatCourant();
   holdingRegisters[INDEX_ETAT_COURANT_GUIRLANDE] = eclairageSpotGuirlande.getEtatCourant();
-  holdingRegisters[INDEX_VALEUR_TEMPERATURE] = bme.getTemperature();
-  holdingRegisters[INDEX_VALEUR_HUMIDITE] = bme.getHumidity();
-  holdingRegisters[INDEX_VALEUR_PRESSION] = (bme.getPressure()/100); //hPa
+  holdingRegisters[INDEX_VALEUR_TEMPERATURE] = (int8_t)(bme.getTemperature()*100);
+  holdingRegisters[INDEX_VALEUR_HUMIDITE] = (uint8_t)(bme.getHumidity()*100);
+  holdingRegisters[INDEX_VALEUR_PRESSION] = (uint16_t)(bme.getPressure()*10000); //hPa
 }
