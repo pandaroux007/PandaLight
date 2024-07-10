@@ -1,7 +1,9 @@
-#include <Arduino.h>
-#include <Bme280.h>
-#include <LiquidCrystal_I2C.h>
-#include <Wire.h>
+#include <Arduino.h> // https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/Arduino.h
+#include <Bme280.h> // https://github.com/malokhvii-eduard/arduino-bme280
+#include <LiquidCrystal_I2C.h> // https://github.com/marcoschwartz/LiquidCrystal_I2C
+#include <SoftwareSerial.h> // https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/SoftwareSerial
+#include <ModbusRTUSlave.h> // https://github.com/CMB27/ModbusRTUSlave
+#include <Wire.h> // https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/Wire
 // fichiers programmes
 #include "ZoneEclairage.h"
 #include "constants.h"
@@ -10,10 +12,14 @@
 LiquidCrystal_I2C lcd(0x27,16,2);
 enum etatsAffichage : uint8_t {METEO, ETAT_ZONES};
 etatsAffichage etatAffichage = METEO;
-
+// LEDs RGB et BME280
 Bme280TwoWire bme;
 CRGB leds[NBR_LEDS];
-
+// Émulation software de liaison série et Modbus
+SoftwareSerial communicationSerieLogicielle(PIN_RX, PIN_TX);
+ModbusRTUSlave modbus(communicationSerieLogicielle, PIN_DE);
+uint16_t holdingRegisters[TAILLE_BUFFER_MODBUS];
+// Instances de ma classe pour chaque zone d'éclairage (boutons, relais et LED RGB)
 ZoneEclairage eclairageSpotGarage("garage", PIN_BOUTON_GARAGE, PIN_RELAIS_GARAGE, leds[INDEX_LED_GARAGE], COULEUR_ZONE_GARAGE);
 ZoneEclairage eclairageSpotVelo("velo" ,PIN_BOUTON_VELO, PIN_RELAIS_VELO, leds[INDEX_LED_VELO], COULEUR_ZONE_VELO);
 ZoneEclairage eclairageSpotGuirlande("guirlande", PIN_BOUTON_GUIRLANDE, PIN_RELAIS_GUIRLANDE, leds[INDEX_LED_GUIRLANDE], COULEUR_ZONE_GUIRLANDE);
@@ -51,7 +57,7 @@ void gestionMachineAEtatAffichage(void)
 void setup(void)
 {
   // Initialisation du moniteur série
-  Serial.begin(115200);
+  Serial.begin(VITESSE_MONITEUR_SERIE);
   Serial.println(F("\n\nDémarrage!\n-----------------------------------------------------------"));
   Serial.print(F("Temps de fonctionnement d'une lampe en mode court : ")); Serial.print(TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT); Serial.println(F("ms"));
   Serial.print(F("Temps de fonctionnement d'une lampe en mode long  : ")); Serial.print(TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG); Serial.println(F("ms"));
@@ -77,8 +83,10 @@ void setup(void)
   bme.begin(Bme280TwoWireAddress::Primary);
   bme.setSettings(Bme280Settings::weatherMonitoring());
   Serial.println(F(">> Capteur BME280 I2C initialisé!"));
+  // Configuration du modbus
+  modbus.configureHoldingRegisters(holdingRegisters, TAILLE_BUFFER_MODBUS);
+  modbus.begin(ID_SLAVE, VITESSE_MODBUS);
   Serial.println(F("-----------------------------------------------------------\nFin des initalisations!"));
-  
   delay(1000);
   gestionMachineAEtatAffichage();
 }
@@ -91,4 +99,12 @@ void loop(void)
   eclairageSpotGuirlande.update();
   // gestion machine à état de l'affichage des données
   EVERY_N_SECONDS(5) gestionMachineAEtatAffichage(); // 5s au lieu de 3s - pour le débug
+  // gestion modbus
+  modbus.poll();
+  holdingRegisters[INDEX_ETAT_COURANT_GARAGE] = eclairageSpotGarage.getEtatCourant();
+  holdingRegisters[INDEX_ETAT_COURANT_VELO] = eclairageSpotVelo.getEtatCourant();
+  holdingRegisters[INDEX_ETAT_COURANT_GUIRLANDE] = eclairageSpotGuirlande.getEtatCourant();
+  holdingRegisters[INDEX_VALEUR_TEMPERATURE] = bme.getTemperature();
+  holdingRegisters[INDEX_VALEUR_HUMIDITE] = bme.getHumidity();
+  holdingRegisters[INDEX_VALEUR_PRESSION] = (bme.getPressure()/100); //hPa
 }

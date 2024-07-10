@@ -13,4 +13,9 @@
 #define PIN_BOUTON_VELO 3
 #define PIN_BOUTON_GUIRLANDE 4
 
+// ---------- RS485 modbus
+#define PIN_RX 9
+#define PIN_TX 8
+#define PIN_DE 7
+
 #endif //pinout_h
