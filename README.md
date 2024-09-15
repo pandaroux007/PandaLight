@@ -1,5 +1,5 @@
 # Présentation & fonctionnement
-Ce projet commence à être imaginé en 2023, mais n'est réellement entamé d'un point de vu programmation que le 2024-02-01. Il a pour but de créer un système de gestion de l'éclairage dans un garage (pour en savoir plus, voir le fichier [schema garage.odg](<schema garage et lumieres aux bons endroits.odg>)).
+Ce projet commence à être imaginé en 2023, mais n'est réellement entamé d'un point de vu programmation que le 2024/02/01. Il a pour but de créer un système de gestion de l'éclairage dans un garage.
 
 Des boutons tactiles de type `TTP223` seront disposés un peu partout, dans des petits boîtiers étanches imprimé en 3D, et associés à une LED RGB de type `WS2812B` également dans le boîtier. Les câbles sortant de celui-ci passeront par des gaines cachées dans la dalle de béton du garage pour rejoindre un boitier de dérivation IP65, dans lequel sera incrusté un écran OLED. Chaque bouton contrôle un éclairage en particulier, par exemple le spot principal du garage, le spot du local à vélo, la guirlande électique...
 
@@ -16,14 +16,7 @@ Des boutons tactiles de type `TTP223` seront disposés un peu partout, dans des 
 Ce projet est sous [Licence MIT](LICENCE.txt) - [The MIT License (MIT)](https://choosealicense.com/licenses/mit/).
 Retrouvez les détails de cette licence sur le site officiel : https://opensource.org/licenses/MIT.
 
-Dependency Graph (PlatformIO) -  (voir fichier [platformio.ini](platformio.ini)):
-- FastLED @ 3.6.0
-- OneButton @ 2.5.0
-- LiquidCrystal_I2C @ 1.1.4
-- arduino-bme280 @ 1.0.6
-- ModbusRTUSlave @ 2.0.6
-- SoftwareSerial @ 1.0
-- Wire @ 1.0
+Voir le fichier [platformio.ini](platformio.ini) pour les dépendances.
 
 ## Potentielles améliorations
 J'envisage l'ajout d'une communication `RS485` avec le - futur - système domotique Arduino de chez moi, dont l'un des terminaux de commande sera situé à la cave (bah oui, mon petit espace de travail ne sera pas épargné!). Une partie des gaines sous la dalle du garage sortant dans celle-ci, il est parfaitement possible de relier le système de gestion du garage avec le système domotique, via une liaison `MODBUS`.
@@ -36,14 +29,3 @@ Cette liaison amène une autre amélioration possible : l'ajout de l'envoie de d
 3. Merci aux concepteurs des éléments électroniques utilisés dans ce projet,
 4. Merci aux développeurs des bibliothèques utilisées dans ce programme, pour leurs travaux et leurs contributions à la communauté,
 5. Enfin, merci à tous les créateurs de contenus techniques sur Internet qui me permettent d'en apprendre un peu plus chaque jour.
-
-# Utilisation mémoire
-Sur une carte Arduino NANO, donc avec un ATmega328p (old bootloader), cadencé 16MHz, 2KB de RAM, 30KB de Flash, une compilation m'indique ceci
-```
-RAM:   [=======   ]  69.0% (used 1413 bytes from 2048 bytes)
-Flash: [========  ]  75.4% (used 23168 bytes from 30720 bytes)
-```
-(en revanche une analyse approfondie avec `PlatformIO > PIO Home > Inspect` indique ceci : )
-<div align="center">
-<img src="memory_use.png" alt="utilisation de la mémoire de la carte Arduino NANO sur PIO Home > Inspect"/>
-</div>

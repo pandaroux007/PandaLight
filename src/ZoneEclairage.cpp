@@ -1,35 +1,27 @@
 #include "ZoneEclairage.h"
 
-// définition du constructeur
-ZoneEclairage::ZoneEclairage(const char * passedNom, byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
-: bouton(passedPinBouton, false), // bp actif sur HIGH (LOW par defaut)
-led(passedLed)
-{
-  pinRelais = passedPinRelais;
-  couleur = passedCouleur;
-  nom = passedNom;
-}
+//ZoneEclairage::ZoneEclairage() {}
 
 // définition des fonctions de gestion des événements pour les transitions
 void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique simple est effectué
 {
-  Serial.print(nom); Serial.print(F("\tClique ! >> "));
+  DEBUG_PRINT(F("\tClique ! >> "));
   switch (etats)
   {
-  case ZoneEclairage::ALLUME_COURT: Serial.println(F("On était en ALLUME_COURT, on ne fait rien")); break; // Si la lampe est déjà allumée, alors on ne fait rien, on sort...
-  case ZoneEclairage::ALLUME_LONG: Serial.println(F("On était en ALLUME_LONG, on ne fait rien")); break; // pareil.
+  case ZoneEclairage::ALLUME_COURT: DEBUG_PRINTLN(F("On était en ALLUME_COURT, on ne fait rien")); break; // Si la lampe est déjà allumée, alors on ne fait rien, on sort...
+  case ZoneEclairage::ALLUME_LONG: DEBUG_PRINTLN(F("On était en ALLUME_LONG, on ne fait rien")); break; // pareil.
   case ZoneEclairage::REPOS: // Si on était au repos, alors on passe en mode allumé court (géré dans update)
-    Serial.println(F("On était au REPOS, on passe en mode ALLUME_COURT"));
+    DEBUG_PRINTLN(F("On était au REPOS, on passe en mode ALLUME_COURT"));
     tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
     etats = ZoneEclairage::ALLUME_COURT; // on attribue le nouvel état
     break;
   case ZoneEclairage::ALLUME_VERS_REPOS: // Si on était au repos, alors on passe en mode allumé court (géré dans update)
-    Serial.println(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
+    DEBUG_PRINTLN(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
     tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
     etats = ZoneEclairage::ALLUME_COURT; // on attribue le nouvel état
     break;
   default: // Si état inconnu, bah on le print et on sort.
-    Serial.println(F("\t\tERREUR >> Etat inconnu dans checkEventClic !, on bascule en mode REPOS"));
+    DEBUG_PRINTLN(F("\t\tERREUR >> Etat inconnu dans checkEventClic !, on bascule en mode REPOS"));
     etats = ZoneEclairage::REPOS;
     break;
   }
@@ -37,38 +29,43 @@ void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique si
 
 void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un clique long est effectué
 {
-  Serial.print(nom); Serial.print(F("\tClic Long ! >> "));
+  DEBUG_PRINT(F("\tClic Long ! >> "));
   switch (etats)
   {
   case ZoneEclairage::ALLUME_COURT: // si on était allumé sur un temps court,
-    Serial.println(F("On était en ALLUME_COURT, on passe en mode REPOS"));
+    DEBUG_PRINTLN(F("On était en ALLUME_COURT, on passe en mode REPOS"));
     etats = ZoneEclairage::REPOS; // bah on éteint tout.
     break;
   case ZoneEclairage::ALLUME_LONG: // si on était en mode allumé longtemps,
-    Serial.println(F("On était au ALLUME_LONG, on bascule en mode REPOS"));
+    DEBUG_PRINTLN(F("On était au ALLUME_LONG, on bascule en mode REPOS"));
     etats = ZoneEclairage::REPOS; // alors on éteint tout en passant en mode REPOS
     break;
   case ZoneEclairage::REPOS: // si on était tout éteint,
-    Serial.println(F("On était au REPOS, on bascule en mode ALLUME_LONG"));
+    DEBUG_PRINTLN(F("On était au REPOS, on bascule en mode ALLUME_LONG"));
     etats = ZoneEclairage::ALLUME_LONG; // alors on passe en mode allumé longtemps
     break;
   case ZoneEclairage::ALLUME_VERS_REPOS: // si on était sur le point de s'éteindre alors que l'on était allumé,
-    Serial.println(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
+    DEBUG_PRINTLN(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
     tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
     etats = ZoneEclairage::ALLUME_COURT; // alors on relance un temps court
     break;
   default: // Si état inconnu, bah on le print et on sort.
-    Serial.println(F("ERREUR >> Etat inconnu dans checkEventClicLong! Mode REPOS par défaut"));
+    DEBUG_PRINTLN(F("ERREUR >> Etat inconnu dans checkEventClicLong! Mode REPOS par défaut"));
     etats = ZoneEclairage::REPOS;
     break;
   }
 }
 
-void ZoneEclairage::begin(void)
+void ZoneEclairage::begin(byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
 {
+  // def des variables de l'instance
+  couleur = passedCouleur;
+  // def et init du relais
+  pinRelais = passedPinRelais;
   pinMode(pinRelais, OUTPUT);
-  // on attache le clique à la gestion de l'événement,
-  // c'est à dire que fait-on dans quel état (utilisation fonction lambda)
+  // paramètrage du bouton
+  bouton.setup(passedPinBouton, INPUT_PULLUP, true);
+  // on attache le clique simple à la gestion d'un événement
   bouton.attachClick([](void *instance) {
       ZoneEclairage * cible= (ZoneEclairage *)instance;
       cible->checkEventClic();
@@ -96,7 +93,7 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT - TEMPS_AVANT_EXTENCTION))
     {
-      Serial.print(nom); Serial.println(F(" >> Fin proche du temps court !"));
+      DEBUG_PRINTLN(F(">> Fin proche du temps court !"));
       etats = ZoneEclairage::ALLUME_VERS_REPOS;
     }
     break;
@@ -106,7 +103,7 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT)) // Si le temps "long" est écoulé,
     {
-      Serial.print(nom); Serial.println(F(" >> Fin du temps court, on passe en mode REPOS!"));
+      DEBUG_PRINTLN(F(">> Fin du temps court, on passe en mode REPOS!"));
       etats = ZoneEclairage::REPOS; // alors on passe en mode repos
     }
     break;
@@ -116,12 +113,12 @@ void ZoneEclairage::update(void) // fonction à appeller le plus souvent possibl
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG) // si le temps long est passé
     {
-      Serial.print(nom); Serial.println(F(" >> Fin du temps long, on passe en mode REPOS!"));
+      DEBUG_PRINTLN(F(">> Fin du temps long, on passe en mode REPOS!"));
       etats = ZoneEclairage::REPOS; // alors on éteint tout (ouais là on s'embête pas à faire un rappel, le temps est suffisament long)
     }
     break;
   default:
-    Serial.println(F("ERREUR >> État inconnu dans update! Mode REPOS par défaut"));
+    DEBUG_PRINTLN(F("ERREUR >> État inconnu dans update! Mode REPOS par défaut"));
     // setRelais(RELAIS_OFF); // pas besoin ici puis qu'au prochain tour de loop on verra qu'on est en REPOS et on coupera le relais et la led
     etats = ZoneEclairage::REPOS;
     break;
@@ -137,7 +134,7 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
   {
     etatCourantRelais = etatSouhaite;
     digitalWrite(pinRelais, etatSouhaite); // on applique les changements, puis on le print à la ligne suivante
-    Serial.print(nom); Serial.print(F(" >> relais défini sur ")); Serial.println(etatSouhaite);
+    DEBUG_PRINT(F(">> relais défini sur ")); DEBUG_PRINTLN(etatSouhaite);
   }
 }
 
@@ -158,7 +155,7 @@ bool ZoneEclairage::getEtatCourant(void)
     return(true); //1
     break;
   default:
-    Serial.print(nom); Serial.print(F(" ERREUR >> Etat inconnu dans getEtatCourant, impossible de retourner l'état courant - 0 par défaut"));
+    DEBUG_PRINT(F("ERREUR >> Etat inconnu dans getEtatCourant, impossible de retourner l'état courant - 0 par défaut"));
     return(false);
     break;
   }
@@ -197,11 +194,9 @@ void ZoneEclairage::ledClignoterDoucement(void)
 
 void ZoneEclairage::ledClignoterRapidement(void)
 {
-  if((millis() - tempsPrecedentClignotement) >= 500ul) // une demie seconde
+  if((millis() - tempsPrecedentClignotement) >= 500) // une demie seconde
   {
-    if(luminosite > 1) luminosite = 0; // Si on est pas à 0, on met la luminosité à 0
-    else luminosite = 255; // Sinon si on est à 0, on met la luminosité au maximum
-
+    luminosite >= 1 ? luminosite = 0 : luminosite = 255;
     if(led != couleur) led = couleur;
     led.nscale8(luminosite);
 

@@ -4,6 +4,16 @@
 #include <OneButton.h> // on utilise OneButton et pas OneButtonTiny pour les callbacks dans la classe elle-même
 #include <FastLED.h>
 
+// directive de précompilateur pour le debug
+#define DEBUG_ACTVE // ligne à commenter pour desactiver le debug
+#ifdef DEBUG_ACTVE
+  #define DEBUG_PRINTLN(x) Serial.println(x)
+  #define DEBUG_PRINT(x) Serial.print(x)
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINT(x)
+#endif 
+
 #define RELAIS_ON true
 #define RELAIS_OFF false
 
@@ -53,9 +63,9 @@ class ZoneEclairage
     void checkEventClicLong(void);
 
   public:
-    ZoneEclairage(const char *, byte, byte, CRGB &, CRGB); // Constructeur
+    ZoneEclairage(void); // Constructeur
     void update(void); // fonction a appeller à chaque loop, pour gérer le btn et la machine à état
-    void begin(void);
+    void begin(byte, byte, CRGB &, CRGB);
     bool getEtatCourant(void);
 };
 

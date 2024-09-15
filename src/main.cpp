@@ -19,10 +19,10 @@ CRGB leds[NBR_LEDS];
 SoftwareSerial communicationSerieLogicielle(PIN_RX, PIN_TX);
 ModbusRTUSlave modbus(communicationSerieLogicielle, PIN_DE);
 uint16_t holdingRegisters[TAILLE_BUFFER_MODBUS];
-// Instances de ma classe pour chaque zone d'éclairage (boutons, relais et LED RGB)
-ZoneEclairage eclairageSpotGarage("garage", PIN_BOUTON_GARAGE, PIN_RELAIS_GARAGE, leds[INDEX_LED_GARAGE], COULEUR_ZONE_GARAGE);
-ZoneEclairage eclairageSpotVelo("velo" ,PIN_BOUTON_VELO, PIN_RELAIS_VELO, leds[INDEX_LED_VELO], COULEUR_ZONE_VELO);
-ZoneEclairage eclairageSpotGuirlande("guirlande", PIN_BOUTON_GUIRLANDE, PIN_RELAIS_GUIRLANDE, leds[INDEX_LED_GUIRLANDE], COULEUR_ZONE_GUIRLANDE);
+
+ZoneEclairage eclairageSpotGarage;
+ZoneEclairage eclairageSpotVelo;
+ZoneEclairage eclairageSpotGuirlande;
 
 void gestionMachineAEtatAffichage(void)
 {
@@ -58,19 +58,13 @@ void setup(void)
 {
   // Initialisation du moniteur série
   Serial.begin(VITESSE_MONITEUR_SERIE);
-  Serial.println(F("\n\nDémarrage!\n-----------------------------------------------------------"));
-  Serial.print(F("Temps de fonctionnement d'une lampe en mode court : ")); Serial.print(TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT); Serial.println(F("ms"));
-  Serial.print(F("Temps de fonctionnement d'une lampe en mode long  : ")); Serial.print(TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG); Serial.println(F("ms"));
-  Serial.println(F("-----------------------------------------------------------"));
   // Initialisation des leds WS2812B
   FastLED.addLeds<WS2812B, PIN_LEDS, GRB>(leds, NBR_LEDS); //RGB par défaut, ce qui inversait le vert et le rouge sur mon bandeau!
   FastLED.setBrightness(100);
-  Serial.println(F(">> LEDs WS2812B initialisées!"));
   // Initialisation des zones d'éclairage
-  eclairageSpotGarage.begin();
-  eclairageSpotVelo.begin();
-  eclairageSpotGuirlande.begin();
-  Serial.println(F(">> Zones d'éclairages initialisées!"));
+  eclairageSpotGarage.begin(PIN_BOUTON_GARAGE, PIN_RELAIS_GARAGE, leds[INDEX_LED_GARAGE], COULEUR_ZONE_GARAGE);
+  eclairageSpotVelo.begin(PIN_BOUTON_VELO, PIN_RELAIS_VELO, leds[INDEX_LED_VELO], COULEUR_ZONE_VELO);
+  eclairageSpotGuirlande.begin(PIN_BOUTON_GUIRLANDE, PIN_RELAIS_GUIRLANDE, leds[INDEX_LED_GUIRLANDE], COULEUR_ZONE_GUIRLANDE);
   // Initialisation de l'écran LCD
   lcd.init();
   lcd.backlight();
@@ -78,15 +72,13 @@ void setup(void)
   lcd.clear();
   lcd.home();
   lcd.createChar(1, rond_en_exposant_symbole_degres_celsius);
-  Serial.println(F(">> Écran LCD 1602 I2C initialisé!"));
   // Initialisation du capteur BME280
   bme.begin(Bme280TwoWireAddress::Primary);
   bme.setSettings(Bme280Settings::weatherMonitoring());
-  Serial.println(F(">> Capteur BME280 I2C initialisé!"));
   // Configuration du modbus
   modbus.configureHoldingRegisters(holdingRegisters, TAILLE_BUFFER_MODBUS);
   modbus.begin(ID_SLAVE, VITESSE_MODBUS);
-  Serial.println(F("-----------------------------------------------------------\nFin des initalisations!"));
+  Serial.println(F("Démarrage!"));
   delay(1000);
   gestionMachineAEtatAffichage();
 }
