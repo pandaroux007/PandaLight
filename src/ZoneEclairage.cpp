@@ -1,6 +1,6 @@
 #include "ZoneEclairage.h"
 
-//ZoneEclairage::ZoneEclairage() {}
+ZoneEclairage::ZoneEclairage() {}
 
 // définition des fonctions de gestion des événements pour les transitions
 void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique simple est effectué
@@ -60,6 +60,7 @@ void ZoneEclairage::begin(byte passedPinBouton, byte passedPinRelais, CRGB & pas
 {
   // def des variables de l'instance
   couleur = passedCouleur;
+  led = passedLed;
   // def et init du relais
   pinRelais = passedPinRelais;
   pinMode(pinRelais, OUTPUT);
