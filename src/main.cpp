@@ -12,17 +12,17 @@
 LiquidCrystal_I2C lcd(0x27,16,2);
 enum etatsAffichage : uint8_t {METEO, ETAT_ZONES};
 etatsAffichage etatAffichage = METEO;
-// LEDs RGB et BME280
-Bme280TwoWire bme;
-CRGB leds[NBR_LEDS];
 // Émulation software de liaison série et Modbus
 SoftwareSerial communicationSerieLogicielle(PIN_RX, PIN_TX);
 ModbusRTUSlave modbus(communicationSerieLogicielle, PIN_DE);
 uint16_t holdingRegisters[TAILLE_BUFFER_MODBUS];
-
-ZoneEclairage eclairageSpotGarage;
-ZoneEclairage eclairageSpotVelo;
-ZoneEclairage eclairageSpotGuirlande;
+// LEDs RGB et BME280
+Bme280TwoWire bme;
+CRGB leds[NBR_LEDS];
+// instance de zones d'éclairage
+ZoneEclairage eclairageSpotGarage(PIN_BOUTON_GARAGE, PIN_RELAIS_GARAGE, leds[INDEX_LED_GARAGE],  COULEUR_ZONE_GARAGE);
+ZoneEclairage eclairageSpotVelo(PIN_BOUTON_VELO, PIN_RELAIS_VELO, leds[INDEX_LED_VELO], COULEUR_ZONE_VELO);
+ZoneEclairage eclairageSpotGuirlande(PIN_BOUTON_GUIRLANDE, PIN_RELAIS_GUIRLANDE, leds[INDEX_LED_GUIRLANDE], COULEUR_ZONE_GUIRLANDE);
 
 void gestionMachineAEtatAffichage(void)
 {
@@ -62,9 +62,9 @@ void setup(void)
   FastLED.addLeds<WS2812B, PIN_LEDS, GRB>(leds, NBR_LEDS); //RGB par défaut, ce qui inversait le vert et le rouge sur mon bandeau!
   FastLED.setBrightness(100);
   // Initialisation des zones d'éclairage
-  eclairageSpotGarage.begin(PIN_BOUTON_GARAGE, PIN_RELAIS_GARAGE, leds[INDEX_LED_GARAGE], COULEUR_ZONE_GARAGE);
-  eclairageSpotVelo.begin(PIN_BOUTON_VELO, PIN_RELAIS_VELO, leds[INDEX_LED_VELO], COULEUR_ZONE_VELO);
-  eclairageSpotGuirlande.begin(PIN_BOUTON_GUIRLANDE, PIN_RELAIS_GUIRLANDE, leds[INDEX_LED_GUIRLANDE], COULEUR_ZONE_GUIRLANDE);
+  eclairageSpotGarage.begin();
+  eclairageSpotVelo.begin();
+  eclairageSpotGuirlande.begin();
   // Initialisation de l'écran LCD
   lcd.init();
   lcd.backlight();

@@ -1,5 +1,5 @@
 # Présentation & fonctionnement
-Ce projet commence à être imaginé en 2023, mais n'est réellement entamé d'un point de vu programmation que le 2024/02/01. Il a pour but de créer un système de gestion de l'éclairage dans un garage.
+Ce projet commence à être imaginé en 2023, mais n'est réellement entamé d'un point de vue programmation que le 2024/02/01. Il a pour but de créer un système de gestion de l'éclairage dans un garage.
 
 Des boutons tactiles de type `TTP223` seront disposés un peu partout, dans des petits boîtiers étanches imprimé en 3D, et associés à une LED RGB de type `WS2812B` également dans le boîtier. Les câbles sortant de celui-ci passeront par des gaines cachées dans la dalle de béton du garage pour rejoindre un boitier de dérivation IP65, dans lequel sera incrusté un écran OLED. Chaque bouton contrôle un éclairage en particulier, par exemple le spot principal du garage, le spot du local à vélo, la guirlande électique...
 
@@ -10,7 +10,7 @@ Des boutons tactiles de type `TTP223` seront disposés un peu partout, dans des 
 
 **Les appuis sur les boutons ne font pas la même chose en fonction de l'état actuel de l'éclairage ainsi que le types de cliques.** Si on était en repos, et que l'on fait un clique long, cela allume l'éclairage en mode long (pas de rappel, s'éteint automatiquement 5h plus tard). Inversement, si on était allumé (court ou long), cela éteint l'éclairage - on passe en mode repos. Un clique court active le mode allumé court (rappel possible, s’éteint 1H plus tard si pas de rappel)
 
-> Dés que je projet sera terminé, j'ajouterai dans le README.md un lien vers son topic de présentation sur le forum Arduino francophone. Vous y trouverez des photos du projet installé et fonctionnel ainsi que des détails sur le code.
+> Dès que je projet sera terminé, j'ajouterai dans le README.md un lien vers son topic de présentation sur le forum Arduino francophone. Vous y trouverez des photos du projet installé et fonctionnel ainsi que des détails sur le code.
 
 ## Licence & Dépendances
 Ce projet est sous [Licence MIT](LICENCE.txt) - [The MIT License (MIT)](https://choosealicense.com/licenses/mit/).

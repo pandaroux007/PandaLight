@@ -1,6 +1,12 @@
 #include "ZoneEclairage.h"
 
-ZoneEclairage::ZoneEclairage() {}
+ZoneEclairage::ZoneEclairage(const byte passedPinBouton, const byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
+: bouton(passedPinBouton), led(passedLed)
+{
+  couleur = passedCouleur;
+  pinRelais = passedPinRelais;
+  pinBouton = passedPinBouton;
+}
 
 // définition des fonctions de gestion des événements pour les transitions
 void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique simple est effectué
@@ -56,25 +62,18 @@ void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un cliqu
   }
 }
 
-void ZoneEclairage::begin(byte passedPinBouton, byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
-{
-  // def des variables de l'instance
-  couleur = passedCouleur;
-  led = passedLed;
-  // def et init du relais
-  pinRelais = passedPinRelais;
+void ZoneEclairage::begin() {
+  // init du relais
   pinMode(pinRelais, OUTPUT);
   // paramètrage du bouton
-  bouton.setup(passedPinBouton, INPUT_PULLUP, true);
+  bouton.setup(pinBouton, INPUT_PULLUP, true);
   // on attache le clique simple à la gestion d'un événement
   bouton.attachClick([](void *instance) {
-      ZoneEclairage * cible= (ZoneEclairage *)instance;
-      cible->checkEventClic();
+    ((ZoneEclairage *)instance)->checkEventClic();
   }, this);
   // et on fait pareil pour le clique long
   bouton.attachLongPressStart([](void *instance) {
-      ZoneEclairage * cible= (ZoneEclairage *)instance;
-      cible->checkEventClicLong();
+    ( (ZoneEclairage *)instance)->checkEventClicLong();
   }, this);
 }
 

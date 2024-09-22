@@ -12,7 +12,7 @@
 #else
   #define DEBUG_PRINTLN(x)
   #define DEBUG_PRINT(x)
-#endif 
+#endif
 
 #define RELAIS_ON true
 #define RELAIS_OFF false
@@ -32,9 +32,9 @@
 class ZoneEclairage
 {
   private:
-    const char * nom;
-    // déclaration de l'instance du bouton et de la led
+    // déclaration de l'instance du bouton (et sa pin) et de la led
     OneButton bouton;
+    byte pinBouton;
     CRGB & led;
     // minuteur d'extinction
     uint32_t tempsPrecedentClique;
@@ -63,9 +63,9 @@ class ZoneEclairage
     void checkEventClicLong(void);
 
   public:
-    ZoneEclairage(void); // Constructeur
+    ZoneEclairage(const byte, const byte, CRGB &, CRGB); // Constructeur
     void update(void); // fonction a appeller à chaque loop, pour gérer le btn et la machine à état
-    void begin(byte, byte, CRGB &, CRGB);
+    void begin(void);
     bool getEtatCourant(void);
 };
 
