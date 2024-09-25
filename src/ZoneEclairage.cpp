@@ -1,7 +1,8 @@
 #include "ZoneEclairage.h"
 
 ZoneEclairage::ZoneEclairage(const byte passedPinBouton, const byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
-: bouton(passedPinBouton), led(passedLed)
+: bouton(passedPinBouton), 
+led(passedLed)
 {
   couleur = passedCouleur;
   pinRelais = passedPinRelais;
