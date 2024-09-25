@@ -63,7 +63,7 @@ class ZoneEclairage
     void checkEventClicLong(void);
 
   public:
-    ZoneEclairage(const byte, const byte, CRGB &, CRGB); // Constructeur
+    explicit ZoneEclairage(const byte, const byte, CRGB &, CRGB); // Constructeur
     void update(void); // fonction a appeller à chaque loop, pour gérer le btn et la machine à état
     void begin(void);
     bool getEtatCourant(void);
