@@ -1,102 +1,115 @@
+/*
+PandaLight version cave
+*/
+
 #include <Arduino.h> // https://github.com/arduino/ArduinoCore-avr/blob/master/cores/arduino/Arduino.h
-#include <Bme280.h> // https://github.com/malokhvii-eduard/arduino-bme280
-#include <LiquidCrystal_I2C.h> // https://github.com/marcoschwartz/LiquidCrystal_I2C
 #include <SoftwareSerial.h> // https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/SoftwareSerial
-#include <ModbusRTUSlave.h> // https://github.com/CMB27/ModbusRTUSlave
-#include <Wire.h> // https://github.com/arduino/ArduinoCore-avr/tree/master/libraries/Wire
 // fichiers programmes
-#include "ZoneEclairage.h"
-#include "constants.h"
-#include "pinout.h"
+#include "ZoneEclairage.hpp"
+#include "constantes.hpp"
 
-LiquidCrystal_I2C lcd(0x27,16,2);
-enum etatsAffichage : uint8_t {METEO, ETAT_ZONES};
-etatsAffichage etatAffichage = METEO;
-// Émulation software de liaison série et Modbus
-SoftwareSerial communicationSerieLogicielle(PIN_RX, PIN_TX);
-ModbusRTUSlave modbus(communicationSerieLogicielle, PIN_DE);
-uint16_t holdingRegisters[TAILLE_BUFFER_MODBUS];
-// LEDs RGB et BME280
-Bme280TwoWire bme;
-CRGB leds[NBR_LEDS];
-// instance de zones d'éclairage
-ZoneEclairage eclairageSpotGarage(PIN_BOUTON_GARAGE, PIN_RELAIS_GARAGE, leds[INDEX_LED_GARAGE],  COULEUR_ZONE_GARAGE);
-ZoneEclairage eclairageSpotVelo(PIN_BOUTON_VELO, PIN_RELAIS_VELO, leds[INDEX_LED_VELO], COULEUR_ZONE_VELO);
-ZoneEclairage eclairageSpotGuirlande(PIN_BOUTON_GUIRLANDE, PIN_RELAIS_GUIRLANDE, leds[INDEX_LED_GUIRLANDE], COULEUR_ZONE_GUIRLANDE);
+CRGB leds[NBR_ZONES];
+// instances des zones d'éclairage
+ZoneEclairage eclairages[NBR_ZONES] = {
+  ZoneEclairage(12, A3, leds[0],  COULEUR_ZONE_1),
+  ZoneEclairage(11, A2, leds[1],  COULEUR_ZONE_2),
+  ZoneEclairage(10, A1, leds[2],  COULEUR_ZONE_3),
+  ZoneEclairage(4, A0, leds[3],  COULEUR_ZONE_4),
+  ZoneEclairage(3, 13, leds[4],  COULEUR_ZONE_5)
+};
 
-void gestionMachineAEtatAffichage(void)
-{
-  switch (etatAffichage)
-  {
-  case METEO:
-    Serial.println(F("Mode METEO"));
-    etatAffichage = ETAT_ZONES;
-    // affichage données météo sur écran lcd
-    lcd.clear(); lcd.home();
-    lcd.print(F("T: ")); lcd.print(bme.getTemperature()); lcd.print(char(1)); lcd.print(F("C"));
-    lcd.setCursor(0,1);
-    lcd.print(F("H: ")); lcd.print(bme.getHumidity()); lcd.print(F("%"));
-    break;
-  case ETAT_ZONES:
-    Serial.println(F("Mode ETAT_ZONES"));
-    etatAffichage = METEO;
-    // affichage de l'état (allumé ou éteint) de chacune des trois zone (vélo, garage, et guirlande)
-    lcd.clear(); lcd.home();
-    lcd.print(F("VELO:")); lcd.print(eclairageSpotVelo.getEtatCourant());
-    lcd.print(F(", GARAGE:")); lcd.print(eclairageSpotGarage.getEtatCourant());
-    lcd.setCursor(0, 1);
-    lcd.print(F("  GUIRLANDE:")); lcd.print(eclairageSpotGuirlande.getEtatCourant());
-    break;
-  default:
-    Serial.println(F("ERREUR >> etat inconnu dans loop affichage! Mode METEO par défaut"));
-    etatAffichage = METEO;
-    break;
-  }
-}
+OneButton boutonGeneral;
+
+void checkEventGeneral(bool);
 
 void setup(void)
 {
   // Initialisation du moniteur série
   Serial.begin(VITESSE_MONITEUR_SERIE);
-  // Initialisation des leds WS2812B
-  FastLED.addLeds<WS2812B, PIN_LEDS, GRB>(leds, NBR_LEDS); //RGB par défaut, ce qui inversait le vert et le rouge sur mon bandeau!
+  /*
+  Initialisation des leds WS2812B
+  RGB par défaut, ce qui inversait le vert et le rouge sur le bandeau - passage en GRB
+  */
+  FastLED.addLeds<WS2812B, PIN_LEDS, GRB>(leds, NBR_ZONES);
   FastLED.setBrightness(100);
   // Initialisation des zones d'éclairage
-  eclairageSpotGarage.begin();
-  eclairageSpotVelo.begin();
-  eclairageSpotGuirlande.begin();
-  // Initialisation de l'écran LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.setContrast(255);
-  lcd.clear();
-  lcd.home();
-  lcd.createChar(1, rond_en_exposant_symbole_degres_celsius);
-  // Initialisation du capteur BME280
-  bme.begin(Bme280TwoWireAddress::Primary);
-  bme.setSettings(Bme280Settings::weatherMonitoring());
-  // Configuration du modbus
-  modbus.configureHoldingRegisters(holdingRegisters, TAILLE_BUFFER_MODBUS);
-  modbus.begin(ID_SLAVE, VITESSE_MODBUS);
-  Serial.println(F("Démarrage!"));
+  for(uint8_t index = 0; index < NBR_ZONES; index++)
+  {
+    eclairages[index].begin();
+    DEBUG_PRINT(F("Zone n°")); DEBUG_PRINT(index); DEBUG_PRINTLN(F(" initialisée"));
+  }
+
+  boutonGeneral.setup(5, INPUT_PULLUP, true);
+  boutonGeneral.attachClick([]() {
+    checkEventGeneral(false);
+  });
+  boutonGeneral.attachLongPressStart([]() {
+    checkEventGeneral(true);
+  });
+  DEBUG_PRINTLN(F("Démarrage!"));
   delay(1000);
-  gestionMachineAEtatAffichage();
 }
 
 void loop(void)
 {
-  // gestion machine à état des boutons et des éclairage
-  eclairageSpotGarage.update();
-  eclairageSpotVelo.update();
-  eclairageSpotGuirlande.update();
-  // gestion machine à état de l'affichage des données
-  EVERY_N_SECONDS(5) gestionMachineAEtatAffichage(); // 5s au lieu de 3s - pour le débug
-  // gestion modbus
-  modbus.poll();
-  holdingRegisters[INDEX_ETAT_COURANT_GARAGE] = eclairageSpotGarage.getEtatCourant();
-  holdingRegisters[INDEX_ETAT_COURANT_VELO] = eclairageSpotVelo.getEtatCourant();
-  holdingRegisters[INDEX_ETAT_COURANT_GUIRLANDE] = eclairageSpotGuirlande.getEtatCourant();
-  holdingRegisters[INDEX_VALEUR_TEMPERATURE] = (int8_t)(bme.getTemperature()*100);
-  holdingRegisters[INDEX_VALEUR_HUMIDITE] = (uint8_t)(bme.getHumidity()*100);
-  holdingRegisters[INDEX_VALEUR_PRESSION] = (uint16_t)(bme.getPressure()*10000); //hPa
+  // mise à jour machine à état (à appeller très régulièrement)
+  for(uint8_t index = 0; index < NBR_ZONES; index++)
+  {
+    eclairages[index].update();
+  }
+}
+
+void checkEventGeneral(bool clickLong = false)
+{
+  if (clickLong)
+  {
+    for (uint8_t index = 2; index < 5; index++)
+    {
+      if (eclairages[index].getStateMachine() != REPOS)
+      {
+        eclairages[index].rebootConteurEtatCourant();
+      }
+    }
+  }
+  else // si il s'agit d'un clic simple
+  {
+    uint8_t conteurValidation = 0;
+    for (uint8_t index = 2; index < 5; index++)
+    {
+      if (eclairages[index].getStateMachine() == REPOS)
+      {
+        conteurValidation++;
+      }
+    }
+
+    // si toutes les zones sont éteintes, alors on les allumes une à une
+    if(conteurValidation == 3)
+    {
+      static unsigned long tempsPrecedent = 0;
+      unsigned long maintenant = millis();
+
+      uint8_t indexAllumageZone = 2;
+      if((maintenant - tempsPrecedent) >= 500)
+      {
+        tempsPrecedent = maintenant;
+        eclairages[indexAllumageZone].checkEventClic();
+        indexAllumageZone++;
+        if(indexAllumageZone == 5) return;
+      }
+    }
+    // sinon si certaines ne sont pas au REPOS, allumer uniquement celles au REPOS
+    else
+    {
+      Serial.print("conteurValidation: "); Serial.print(conteurValidation);
+      for(uint8_t index = 2; index < 5; index++)
+      {
+        if(eclairages[index].getStateMachine() == REPOS)
+        {
+          /* pour l'instant pas de gestion du temps ici,
+          plus tard à intégrer comme plus haut dans la fonction */
+          eclairages[index].checkEventClic();
+        }
+      }
+    }
+  }
 }

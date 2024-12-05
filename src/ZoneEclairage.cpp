@@ -1,6 +1,7 @@
-#include "ZoneEclairage.h"
+#include "ZoneEclairage.hpp"
 
-ZoneEclairage::ZoneEclairage(const byte passedPinBouton, const byte passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
+// --------------------------------------------- public
+ZoneEclairage::ZoneEclairage(const uint8_t passedPinBouton, const uint8_t passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
 : bouton(passedPinBouton), led(passedLed)
 {
   couleur = passedCouleur;
@@ -8,64 +9,10 @@ ZoneEclairage::ZoneEclairage(const byte passedPinBouton, const byte passedPinRel
   pinBouton = passedPinBouton;
 }
 
-// définition des fonctions de gestion des événements pour les transitions
-void ZoneEclairage::checkEventClic(void) // fonction appelée quand un clique simple est effectué
-{
-  DEBUG_PRINT(F("\tClique ! >> "));
-  switch (etats)
-  {
-  case ZoneEclairage::ALLUME_COURT: DEBUG_PRINTLN(F("On était en ALLUME_COURT, on ne fait rien")); break; // Si la lampe est déjà allumée, alors on ne fait rien, on sort...
-  case ZoneEclairage::ALLUME_LONG: DEBUG_PRINTLN(F("On était en ALLUME_LONG, on ne fait rien")); break; // pareil.
-  case ZoneEclairage::REPOS: // Si on était au repos, alors on passe en mode allumé court (géré dans update)
-    DEBUG_PRINTLN(F("On était au REPOS, on passe en mode ALLUME_COURT"));
-    tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
-    etats = ZoneEclairage::ALLUME_COURT; // on attribue le nouvel état
-    break;
-  case ZoneEclairage::ALLUME_VERS_REPOS: // Si on était au repos, alors on passe en mode allumé court (géré dans update)
-    DEBUG_PRINTLN(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
-    tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
-    etats = ZoneEclairage::ALLUME_COURT; // on attribue le nouvel état
-    break;
-  default: // Si état inconnu, bah on le print et on sort.
-    DEBUG_PRINTLN(F("\t\tERREUR >> Etat inconnu dans checkEventClic !, on bascule en mode REPOS"));
-    etats = ZoneEclairage::REPOS;
-    break;
-  }
-}
-
-void ZoneEclairage::checkEventClicLong(void) // fonction appelée quand un clique long est effectué
-{
-  DEBUG_PRINT(F("\tClic Long ! >> "));
-  switch (etats)
-  {
-  case ZoneEclairage::ALLUME_COURT: // si on était allumé sur un temps court,
-    DEBUG_PRINTLN(F("On était en ALLUME_COURT, on passe en mode REPOS"));
-    etats = ZoneEclairage::REPOS; // bah on éteint tout.
-    break;
-  case ZoneEclairage::ALLUME_LONG: // si on était en mode allumé longtemps,
-    DEBUG_PRINTLN(F("On était au ALLUME_LONG, on bascule en mode REPOS"));
-    etats = ZoneEclairage::REPOS; // alors on éteint tout en passant en mode REPOS
-    break;
-  case ZoneEclairage::REPOS: // si on était tout éteint,
-    DEBUG_PRINTLN(F("On était au REPOS, on bascule en mode ALLUME_LONG"));
-    etats = ZoneEclairage::ALLUME_LONG; // alors on passe en mode allumé longtemps
-    break;
-  case ZoneEclairage::ALLUME_VERS_REPOS: // si on était sur le point de s'éteindre alors que l'on était allumé,
-    DEBUG_PRINTLN(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
-    tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
-    etats = ZoneEclairage::ALLUME_COURT; // alors on relance un temps court
-    break;
-  default: // Si état inconnu, bah on le print et on sort.
-    DEBUG_PRINTLN(F("ERREUR >> Etat inconnu dans checkEventClicLong! Mode REPOS par défaut"));
-    etats = ZoneEclairage::REPOS;
-    break;
-  }
-}
-
+/// @brief fonction d'initialisation, à appeler dans le setup normalement
+/// @param none ne prend pas de paramètres
 void ZoneEclairage::begin() {
-  // init du relais
   pinMode(pinRelais, OUTPUT);
-  // paramètrage du bouton
   bouton.setup(pinBouton, INPUT_PULLUP, true);
   // on attache le clique simple à la gestion d'un événement
   bouton.attachClick([](void *instance) {
@@ -73,59 +20,142 @@ void ZoneEclairage::begin() {
   }, this);
   // et on fait pareil pour le clique long
   bouton.attachLongPressStart([](void *instance) {
-    ( (ZoneEclairage *)instance)->checkEventClicLong();
+    ((ZoneEclairage *)instance)->checkEventClicLong();
   }, this);
 }
 
-void ZoneEclairage::update(void) // fonction à appeller le plus souvent possible
+/// @brief fonction de mise à jour de la machine à état
+/// @warning À appeller le plus souvent possible!
+void ZoneEclairage::update(void)
 {
   bouton.tick(); // on met à jour l'état du bouton
-  // gestion relais
+  // gestion relais & led
   switch (etats)
   {
-  case ZoneEclairage::REPOS:
-    setRelais(RELAIS_OFF); // on éteint le relais
+  case REPOS:
+    setRelais(RELAIS_OFF);
     ledClignoterDoucement();
     break;
-  case ZoneEclairage::ALLUME_COURT:
-    setRelais(RELAIS_ON); // on allume le relais
+  case ALLUME_COURT:
+    setRelais(RELAIS_ON);
     led = couleur;
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT - TEMPS_AVANT_EXTENCTION))
     {
       DEBUG_PRINTLN(F(">> Fin proche du temps court !"));
-      etats = ZoneEclairage::ALLUME_VERS_REPOS;
+      etats = ALLUME_VERS_REPOS;
     }
     break;
-  case ZoneEclairage::ALLUME_VERS_REPOS:
-    setRelais(RELAIS_ON); // on allume le relais
+  case ALLUME_VERS_REPOS:
+    setRelais(RELAIS_ON);
     ledClignoterRapidement();
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT)) // Si le temps "long" est écoulé,
     {
       DEBUG_PRINTLN(F(">> Fin du temps court, on passe en mode REPOS!"));
-      etats = ZoneEclairage::REPOS; // alors on passe en mode repos
+      etats = REPOS; // alors on passe en mode repos
     }
     break;
-  case ZoneEclairage::ALLUME_LONG:
-    setRelais(RELAIS_ON); // on allume le relais
+  case ALLUME_LONG:
+    setRelais(RELAIS_ON);
     led = couleur;
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG) // si le temps long est passé
     {
       DEBUG_PRINTLN(F(">> Fin du temps long, on passe en mode REPOS!"));
-      etats = ZoneEclairage::REPOS; // alors on éteint tout (ouais là on s'embête pas à faire un rappel, le temps est suffisament long)
+      etats = REPOS; // alors on éteint tout (ouais là on s'embête pas à faire un rappel, le temps est suffisament long)
     }
     break;
   default:
     DEBUG_PRINTLN(F("ERREUR >> État inconnu dans update! Mode REPOS par défaut"));
-    // setRelais(RELAIS_OFF); // pas besoin ici puis qu'au prochain tour de loop on verra qu'on est en REPOS et on coupera le relais et la led
-    etats = ZoneEclairage::REPOS;
+    etats = REPOS;
     break;
   }
 
   FastLED.show(); // on affiche les changement sur la led
 }
+
+/// @brief fonction appelée quand un clique simple est effectué
+void ZoneEclairage::checkEventClic(void)
+{
+  DEBUG_PRINT(F("\tClique ! >> "));
+  switch (etats)
+  {
+  case ALLUME_COURT: DEBUG_PRINTLN(F("On était en ALLUME_COURT, on ne fait rien")); break; // Si la lampe est déjà allumée, alors on ne fait rien, on sort...
+  case ALLUME_LONG: DEBUG_PRINTLN(F("On était en ALLUME_LONG, on ne fait rien")); break; // pareil.
+  case REPOS: // Si on était au repos, alors on passe en mode allumé court (géré dans update)
+    DEBUG_PRINTLN(F("On était au REPOS, on passe en mode ALLUME_COURT"));
+    tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
+    etats = ALLUME_COURT; // on attribue le nouvel état
+    break;
+  case ALLUME_VERS_REPOS: // Si on était au repos, alors on passe en mode allumé court (géré dans update)
+    DEBUG_PRINTLN(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
+    tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
+    etats = ALLUME_COURT; // on attribue le nouvel état
+    break;
+  default:
+    DEBUG_PRINTLN(F("\t\tERREUR >> Etat inconnu dans checkEventClic !, on bascule en mode REPOS"));
+    etats = REPOS;
+    break;
+  }
+}
+
+/// @brief fonction appelée quand un clique long est effectué
+void ZoneEclairage::checkEventClicLong(void)
+{
+  DEBUG_PRINT(F("\tClic Long ! >> "));
+  switch (etats)
+  {
+  case ALLUME_COURT: // si on était allumé sur un temps court,
+    DEBUG_PRINTLN(F("On était en ALLUME_COURT, on passe en mode REPOS"));
+    etats = REPOS; // on éteint tout.
+    break;
+  case ALLUME_LONG: // si on était en mode allumé longtemps,
+    DEBUG_PRINTLN(F("On était au ALLUME_LONG, on bascule en mode REPOS"));
+    etats = REPOS; // alors on éteint tout en passant en mode REPOS
+    break;
+  case REPOS: // si on était tout éteint,
+    DEBUG_PRINTLN(F("On était au REPOS, on bascule en mode ALLUME_LONG"));
+    etats = ALLUME_LONG; // alors on passe en mode allumé longtemps
+    break;
+  case ALLUME_VERS_REPOS: // si on était sur le point de s'éteindre alors que l'on était allumé,
+    DEBUG_PRINTLN(F("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME_COURT"));
+    tempsPrecedentClique = millis(); // on stocke le temps au moment du clique
+    etats = ALLUME_COURT; // alors on relance un temps court
+    break;
+  default:
+    DEBUG_PRINTLN(F("ERREUR >> Etat inconnu dans checkEventClicLong! Mode REPOS par défaut"));
+    etats = REPOS;
+    break;
+  }
+}
+
+/// @brief fonction getter pour l'état courant de l'éclairage de la zone
+/// @return true si éclairage allumée, false si éclairage éteint
+bool ZoneEclairage::getEtatEclairage(void) const
+{
+  switch (etats)
+  {
+  case REPOS:
+    return(false); //0
+    break;
+  case ALLUME_COURT:
+    return(true); //1
+    break;
+  case ALLUME_LONG:
+    return(true); //1
+    break;
+  case ALLUME_VERS_REPOS:
+    return(true); //1
+    break;
+  default:
+    DEBUG_PRINT(F("ERREUR >> Etat inconnu dans getEtatEclairage, retourne false par défaut"));
+    return(false);
+    break;
+  }
+}
+
+// --------------------------------------------- private
 
 // Comme on utilise souvent la gestion de l'état du relais, une petite fonction ne mange pas de pain ;)
 void ZoneEclairage::setRelais(bool etatSouhaite)
@@ -138,46 +168,22 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
   }
 }
 
-bool ZoneEclairage::getEtatCourant(void)
-{
-  switch (etats)
-  {
-  case ZoneEclairage::REPOS:
-    return(false); //0
-    break;
-  case ZoneEclairage::ALLUME_COURT:
-    return(true); //1
-    break;
-  case ZoneEclairage::ALLUME_LONG:
-    return(true); //1
-    break;
-  case ZoneEclairage::ALLUME_VERS_REPOS:
-    return(true); //1
-    break;
-  default:
-    DEBUG_PRINT(F("ERREUR >> Etat inconnu dans getEtatCourant, impossible de retourner l'état courant - 0 par défaut"));
-    return(false);
-    break;
-  }
-}
-
-// Fonctions de gestion des Leds rgb
 void ZoneEclairage::ledClignoterDoucement(void)
 {
   if((millis() - tempsPrecedentClignotement) >= 1ul) // une milliseconde
   {
-    if (sensIncrementation == incrementationLumLed)
+    if(sensIncrementation == incrementationLumLed)
     {
-      if (luminosite == 255)
+      if(luminosite == 100)
       {
         sensIncrementation = false;
-        luminosite = 254;
+        luminosite = 99;
       }
       else luminosite++;
     }
     else // si le sens est en décrémentation
     {
-      if (luminosite == 0)
+      if(luminosite == 0)
       {
         sensIncrementation = true;
         luminosite = 1;
