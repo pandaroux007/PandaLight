@@ -53,7 +53,7 @@ class ZoneEclairage
     uint32_t tempsPrecedentClique;
     // variable pour gérer le clignotement des leds
     uint32_t tempsPrecedentClignotement;
-    etatsZoneEclairage etats = REPOS;
+    etatsZoneEclairage etat = REPOS;
     // fonctions et pin gestion relais
     void setRelais(bool);
     uint8_t pinRelais;
@@ -69,12 +69,11 @@ class ZoneEclairage
     explicit ZoneEclairage(const uint8_t, const uint8_t, CRGB &, CRGB); //constructeur
     void update(void);
     void begin(void);
-    bool getEtatEclairage(void) const;
     /// @brief fonction getter pour l'état courant de la machine à état de la zone
     /// @return etatsZoneEclairage
-    etatsZoneEclairage getStateMachine(void) const {return(etats);}
+    inline etatsZoneEclairage getStateMachine(void) const {return(etat);}
     /// @brief permet de remettre à 0 le temps depuis le dernier click
-    void rebootConteurEtatCourant(void) {tempsPrecedentClique = millis();}
+    inline void rebootConteurEtatCourant(void) {tempsPrecedentClique = millis();}
     void checkEventClic(void);
     void checkEventClicLong(void);
 };
