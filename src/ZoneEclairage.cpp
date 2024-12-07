@@ -1,19 +1,14 @@
 #include "ZoneEclairage.hpp"
 
 // --------------------------------------------- public
-ZoneEclairage::ZoneEclairage(const uint8_t passedPinBouton, const uint8_t passedPinRelais, CRGB & passedLed, CRGB passedCouleur)
-: bouton(passedPinBouton), led(passedLed)
-{
-  couleur = passedCouleur;
-  pinRelais = passedPinRelais;
-  pinBouton = passedPinBouton;
-}
 
 /// @brief fonction d'initialisation, à appeler dans le setup normalement
 /// @param none ne prend pas de paramètres
-void ZoneEclairage::begin() {
+void ZoneEclairage::begin(const uint8_t passedPinBouton, const uint8_t passedPinRelais, CRGB * passedLed, CRGB passedCouleur) {
+  couleur = passedCouleur;
+  pinRelais = passedPinRelais;
   pinMode(pinRelais, OUTPUT);
-  bouton.setup(pinBouton, INPUT_PULLUP, true);
+  bouton.setup(passedPinBouton, INPUT_PULLUP, true);
   // on attache le clique simple à la gestion d'un événement
   bouton.attachClick([](void *instance) {
     ((ZoneEclairage *)instance)->checkEventClic();
@@ -38,7 +33,7 @@ void ZoneEclairage::update(void)
     break;
   case ALLUME_COURT:
     setRelais(RELAIS_ON);
-    led = couleur;
+    *led = couleur;
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_SANS_RAPPEL_COURT - TEMPS_AVANT_EXTENCTION))
     {
@@ -58,7 +53,7 @@ void ZoneEclairage::update(void)
     break;
   case ALLUME_LONG:
     setRelais(RELAIS_ON);
-    led = couleur;
+    *led = couleur;
     // gestion minuteur
     if((millis() - tempsPrecedentClique) >= TEMPS_FONCTIONNEMENT_SANS_RAPPEL_LONG) // si le temps long est passé
     {
@@ -172,8 +167,8 @@ void ZoneEclairage::ledClignoterDoucement(void)
       else luminosite--;
     }
 
-    if(led != couleur) led = couleur;
-    led.nscale8(luminosite);
+    if(*led != couleur) *led = couleur;
+    led->nscale8(luminosite);
 
     tempsPrecedentClignotement = millis();
   }
@@ -184,8 +179,8 @@ void ZoneEclairage::ledClignoterRapidement(void)
   if((millis() - tempsPrecedentClignotement) >= 500) // une demie seconde
   {
     luminosite >= 1 ? luminosite = 0 : luminosite = 255;
-    if(led != couleur) led = couleur;
-    led.nscale8(luminosite);
+    if(*led != couleur) *led = couleur;
+    led->nscale8(luminosite);
 
     tempsPrecedentClignotement = millis();
   }

@@ -47,8 +47,7 @@ class ZoneEclairage
 {
   private:
     OneButton bouton;
-    uint8_t pinBouton;
-    CRGB & led;
+    CRGB * led;
     // minuteur d'extinction
     uint32_t tempsPrecedentClique;
     // variable pour gérer le clignotement des leds
@@ -66,9 +65,9 @@ class ZoneEclairage
     void ledClignoterRapidement(void);
 
   public:
-    explicit ZoneEclairage(const uint8_t, const uint8_t, CRGB &, CRGB); //constructeur
+    explicit ZoneEclairage() = default; //constructeur
+    void begin(const uint8_t, const uint8_t, CRGB *, CRGB);
     void update(void);
-    void begin(void);
     /// @brief fonction getter pour l'état courant de la machine à état de la zone
     /// @return etatsZoneEclairage
     inline etatsZoneEclairage getStateMachine(void) const {return(etat);}

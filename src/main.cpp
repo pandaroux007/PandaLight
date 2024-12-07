@@ -8,15 +8,8 @@ PandaLight version cave
 #include "ZoneEclairage.hpp"
 #include "constantes.hpp"
 
-CRGB leds[NBR_ZONES];
 // instances des zones d'éclairage
-ZoneEclairage eclairages[NBR_ZONES] = {
-  ZoneEclairage(12, A3, leds[0],  COULEUR_ZONE_1),
-  ZoneEclairage(11, A2, leds[1],  COULEUR_ZONE_2),
-  ZoneEclairage(10, A1, leds[2],  COULEUR_ZONE_3),
-  ZoneEclairage(4, A0, leds[3],  COULEUR_ZONE_4),
-  ZoneEclairage(3, 13, leds[4],  COULEUR_ZONE_5)
-};
+ZoneEclairage eclairages[NBR_ZONES];
 
 OneButton boutonGeneral;
 
@@ -35,7 +28,7 @@ void setup(void)
   // Initialisation des zones d'éclairage
   for(uint8_t index = 0; index < NBR_ZONES; index++)
   {
-    eclairages[index].begin();
+    eclairages[index].begin(PIN_BPS[index], PIN_RELAIS[index], &leds[index], COULEURS[index]);
     DEBUG_PRINT(F("Zone n°")); DEBUG_PRINT(index); DEBUG_PRINTLN(F(" initialisée"));
   }
 
