@@ -65,7 +65,7 @@ class ZoneEclairage
     void ledClignoterRapidement(void);
 
   public:
-    explicit ZoneEclairage() = default; //constructeur
+    ZoneEclairage() = default; //constructeur
     void begin(const uint8_t, const uint8_t, CRGB *, CRGB);
     void update(void);
     /// @brief fonction getter pour l'état courant de la machine à état de la zone
