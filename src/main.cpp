@@ -26,11 +26,11 @@ void setup(void)
   FastLED.addLeds<WS2812B, PIN_LEDS, GRB>(leds, NBR_ZONES);
   FastLED.setBrightness(100);
   // Initialisation des zones d'éclairage
-  for(uint8_t index = 0; index < NBR_ZONES; index++)
-  {
-    eclairages[index].begin(PIN_BPS[index], PIN_RELAIS[index], &leds[index], COULEURS[index]);
-    DEBUG_PRINT(F("Zone n°")); DEBUG_PRINT(index); DEBUG_PRINTLN(F(" initialisée"));
-  }
+  eclairages[0].begin(12, A3, &leds[0], 0xFF0000); // rouge
+  eclairages[1].begin(11, A2, &leds[1], 0x00FF00); // vert
+  eclairages[2].begin(10, A1, &leds[2], 0x0000FF); // bleu
+  eclairages[3].begin(4, A0, &leds[3], 0xFFFF00); // jaune
+  eclairages[4].begin(3, 13, &leds[4], 0x00FFFF); // cyan
 
   boutonGeneral.setup(5, INPUT_PULLUP, true);
   boutonGeneral.attachClick(eventClicGeneral);
