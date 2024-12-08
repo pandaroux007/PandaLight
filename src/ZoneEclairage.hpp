@@ -43,10 +43,9 @@ enum etatsZoneEclairage : uint8_t
 /// @param uint8_t pin du relais contrôlant l'éclairage de la zone
 /// @param CRGB référence vers l'index du tableau de led correspondant à la led de la zone
 /// @param CRGB valeur RGB de la couleur de la led associée à la zone
-class ZoneEclairage
+class ZoneEclairage : public OneButton
 {
   private:
-    OneButton bouton;
     CRGB * led;
     // minuteur d'extinction
     uint32_t tempsPrecedentClique;

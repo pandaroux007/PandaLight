@@ -8,13 +8,13 @@ void ZoneEclairage::begin(const uint8_t passedPinBouton, const uint8_t passedPin
   couleur = passedCouleur;
   pinRelais = passedPinRelais;
   pinMode(pinRelais, OUTPUT);
-  bouton.setup(passedPinBouton, INPUT_PULLUP, true);
+  setup(passedPinBouton, INPUT_PULLUP, true);
   // on attache le clique simple à la gestion d'un événement
-  bouton.attachClick([](void *instance) {
+  attachClick([](void *instance) {
     ((ZoneEclairage *)instance)->checkEventClic();
   }, this);
   // et on fait pareil pour le clique long
-  bouton.attachLongPressStart([](void *instance) {
+  attachLongPressStart([](void *instance) {
     ((ZoneEclairage *)instance)->checkEventClicLong();
   }, this);
 }
@@ -23,7 +23,7 @@ void ZoneEclairage::begin(const uint8_t passedPinBouton, const uint8_t passedPin
 /// @warning À appeller le plus souvent possible!
 void ZoneEclairage::update(void)
 {
-  bouton.tick(); // on met à jour l'état du bouton
+  tick(); // on met à jour l'état du bouton
   // gestion relais & led
   switch (etat)
   {

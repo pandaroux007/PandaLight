@@ -10,10 +10,10 @@ PandaLight version cave
 
 // instances des zones d'éclairage
 ZoneEclairage eclairages[NBR_ZONES];
-
 OneButton boutonGeneral;
 
-void checkEventGeneral(bool);
+void eventClicGeneral();
+void eventClicLongGeneral();
 
 void setup(void)
 {
@@ -33,12 +33,9 @@ void setup(void)
   }
 
   boutonGeneral.setup(5, INPUT_PULLUP, true);
-  boutonGeneral.attachClick([]() {
-    checkEventGeneral(false);
-  });
-  boutonGeneral.attachLongPressStart([]() {
-    checkEventGeneral(true);
-  });
+  boutonGeneral.attachClick(eventClicGeneral);
+  boutonGeneral.attachLongPressStart(eventClicLongGeneral);
+
   DEBUG_PRINTLN(F("Démarrage!"));
   delay(1000);
 }
@@ -52,57 +49,55 @@ void loop(void)
   }
 }
 
-void checkEventGeneral(bool clickLong = false)
+void eventClicGeneral()
 {
-  if (clickLong)
+  uint8_t conteurValidation = 0;
+  for (uint8_t index = 2; index < 5; index++)
   {
-    for (uint8_t index = 2; index < 5; index++)
+    if (eclairages[index].getStateMachine() == REPOS)
     {
-      if (eclairages[index].getStateMachine() != REPOS)
+      conteurValidation++;
+    }
+  }
+
+  // si toutes les zones sont éteintes, alors on les allumes une à une
+  if(conteurValidation == 3)
+  {
+    static unsigned long tempsPrecedent = 0;
+    unsigned long maintenant = millis();
+
+    uint8_t indexAllumageZone = 2;
+    if((maintenant - tempsPrecedent) >= 500)
+    {
+      tempsPrecedent = maintenant;
+      eclairages[indexAllumageZone].checkEventClic();
+      indexAllumageZone++;
+      if(indexAllumageZone == 5) return;
+    }
+  }
+  // sinon si certaines ne sont pas au REPOS, allumer uniquement celles au REPOS
+  else
+  {
+    Serial.print("conteurValidation: "); Serial.print(conteurValidation);
+    for(uint8_t index = 2; index < 5; index++)
+    {
+      if(eclairages[index].getStateMachine() == REPOS)
       {
-        eclairages[index].rebootConteurEtatCourant();
+        /* pour l'instant pas de gestion du temps ici,
+        plus tard à intégrer comme plus haut dans la fonction */
+        eclairages[index].checkEventClic();
       }
     }
   }
-  else // si il s'agit d'un clic simple
+}
+
+void eventClicLongGeneral(void)
+{
+  for (uint8_t index = 2; index < 5; index++)
   {
-    uint8_t conteurValidation = 0;
-    for (uint8_t index = 2; index < 5; index++)
+    if (eclairages[index].getStateMachine() != REPOS)
     {
-      if (eclairages[index].getStateMachine() == REPOS)
-      {
-        conteurValidation++;
-      }
-    }
-
-    // si toutes les zones sont éteintes, alors on les allumes une à une
-    if(conteurValidation == 3)
-    {
-      static unsigned long tempsPrecedent = 0;
-      unsigned long maintenant = millis();
-
-      uint8_t indexAllumageZone = 2;
-      if((maintenant - tempsPrecedent) >= 500)
-      {
-        tempsPrecedent = maintenant;
-        eclairages[indexAllumageZone].checkEventClic();
-        indexAllumageZone++;
-        if(indexAllumageZone == 5) return;
-      }
-    }
-    // sinon si certaines ne sont pas au REPOS, allumer uniquement celles au REPOS
-    else
-    {
-      Serial.print("conteurValidation: "); Serial.print(conteurValidation);
-      for(uint8_t index = 2; index < 5; index++)
-      {
-        if(eclairages[index].getStateMachine() == REPOS)
-        {
-          /* pour l'instant pas de gestion du temps ici,
-          plus tard à intégrer comme plus haut dans la fonction */
-          eclairages[index].checkEventClic();
-        }
-      }
+      eclairages[index].rebootConteurEtatCourant();
     }
   }
 }
