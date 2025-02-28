@@ -1,3 +1,5 @@
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
+
 # Présentation & fonctionnement
 Ce projet commence à être imaginé en 2023, mais n'est réellement entamé d'un point de vue programmation que le 2024/02/01. Il a pour but de créer un système de gestion de l'éclairage dans une cave tout d'abord, puis dans un garage.
 
