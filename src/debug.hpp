@@ -5,15 +5,17 @@
 #define MODE_TEST_ACTIVE
 
 #ifdef MODE_TEST_ACTIVE
-    #define DEBUG_PRINTLN(x) Serial.println(F(x))
-    #define DEBUG_PRINT(x) Serial.print(F(x))
-    #define DEBUG_VALUE_PRINTLN(x) Serial.println(x)
-    #define DEBUG_VALUE_PRINT(x) Serial.print(x)
+    #define DEBUG_INIT(vitesse) Serial.begin(vitesse)
+    #define DEBUG_PRINTLN(texte) Serial.println(F(texte))
+    #define DEBUG_PRINT(texte) Serial.print(F(texte))
+    #define DEBUG_VALUE_PRINTLN(valeur) Serial.println(valeur)
+    #define DEBUG_VALUE_PRINT(valeur) Serial.print(valeur)
 #else
-    #define DEBUG_PRINTLN(x)
-    #define DEBUG_PRINT(x)
-    #define DEBUG_VALUE_PRINTLN(x)
-    #define DEBUG_VALUE_PRINT(x)
+    #define DEBUG_INIT(vitesse)
+    #define DEBUG_PRINTLN(texte)
+    #define DEBUG_PRINT(texte)
+    #define DEBUG_VALUE_PRINTLN(valeur)
+    #define DEBUG_VALUE_PRINT(valeur)
 #endif
 
 #ifdef MODE_TEST_ACTIVE

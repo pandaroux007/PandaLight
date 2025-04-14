@@ -50,8 +50,9 @@ class ZoneEclairage : public OneButton
         void callbackClick();
         void callbackClickLong();
         // fonctions getter + secondaires
-        inline etatsZoneEclairage getStateMachine() const { return(etat); }
+        inline void eteindreZone() { etat = REPOS; }
         inline void resetMinuteur() { tempsPrecedentClique = millis(); }
+        // inline etatsZoneEclairage getStateMachine() const { return etat; }
 };
 
 #endif // ZONE_HEADER

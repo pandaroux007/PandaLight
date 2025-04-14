@@ -110,9 +110,8 @@ void ZoneEclairage::callbackClickLong()
         etat = REPOS;
         break;
     case ALLUME_VERS_REPOS:
-        DEBUG_PRINTLN("On était en ALLUME_VERS_REPOS, on repasse en mode ALLUME");
-        resetMinuteur();
-        etat = ALLUME;
+        DEBUG_PRINTLN("On était en ALLUME_VERS_REPOS, on passe à REPOS");
+        etat = REPOS;
         break;
     default:
         etat = REPOS;
