@@ -42,6 +42,8 @@ bool allumerZonesGeneral();
 void eteindreZonesGeneral();
 void reinitialiserZonesGeneral();
 
+#define ZONES_TOUTES_ALLUMEES true
+
 void setup()
 {
     // Initialisation des leds WS2812B
@@ -83,7 +85,7 @@ void loop()
         // rien dans ce cas
         break;
     case GENERAL_ALLUMAGE:
-        if(allumerZonesGeneral() == true)
+        if(allumerZonesGeneral() == ZONES_TOUTES_ALLUMEES)
         {
             etatGeneral = GENERAL_ALLUME;
         }
@@ -95,6 +97,7 @@ void loop()
         break;
     case GENERAL_EXTINCTION:
         eteindreZonesGeneral();
+        DEBUG_PRINT("GENERAL > Passage de GENERAL_EXTINCTION à GENERAL_REPOS");
         etatGeneral = GENERAL_REPOS;
         break;
     
