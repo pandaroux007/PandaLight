@@ -10,10 +10,13 @@
 #define RELAIS_ON true
 #define RELAIS_OFF false
 
-#define INCREMENT_LUM_LED true // sens incrémentation de la luminosité de la led
-#define DECREMENT_LUM_LED false // sens décrémentation de la luminosité de la led
+#define INCREMENTER_LUM_LED true // sens incrémentation de la luminosité de la led
+#define DECREMENTER_LUM_LED false // sens décrémentation de la luminosité de la led
 
-#define ACTIVE_LOW false
+#define ACTIVE_LOW true
+
+constexpr uint8_t UNE_MILLISECONDE = 1;
+constexpr uint16_t UNE_DEMIE_SECONDE = 500;
 
 // machine à états
 enum etatsZoneEclairage : uint8_t
@@ -37,11 +40,12 @@ class ZoneEclairage : public OneButton
         CRGB * led;
         CRGB couleur;
         uint8_t luminosite;
-        bool sensIncrementation = INCREMENT_LUM_LED;
+        bool sensClignotement = INCREMENTER_LUM_LED;
         unsigned long tempsPrecedentClignotement;
         void ledClignoterDoucement();
         void ledClignoterRapidement();
         inline void ledAllumerCompletement() { *led = couleur; }
+        void ledAppliquerLum();
 
     public:
         // fonctions principales

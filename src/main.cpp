@@ -1,18 +1,31 @@
 /*
-  Nome : PandaLight
-  Version : 1-cave
-  Auteur : Pandaroux007
-  Lien : https://github.com/pandaroux007/PandaLight
-  Licence : MIT (voir LICENCE.txt)
+    Nome : PandaLight
+    Version : 1-cave
+    Auteur : Pandaroux007
+    Lien : https://github.com/pandaroux007/PandaLight
+    Licence : MIT (voir LICENCE.txt)
 
-  NOTE : Pour plus d'informations à propos de ce programme et du projet,
-  référez-vous au fichier README.md
+    NOTE : Pour plus d'informations à propos de ce programme et du projet,
+    référez-vous au fichier README.md
 */
 
 #include <Arduino.h>
-// fichiers programmes
+// fichier programmes
 #include "ZoneEclairage.hpp"
-#include "constantes.hpp"
+
+// couleurs
+constexpr uint32_t HEX_ROUGE = 0xFF0000;
+constexpr uint32_t HEX_VERT = 0x00FF00;
+constexpr uint32_t HEX_BLEU = 0x0000FF;
+constexpr uint32_t HEX_JAUNE = 0xFFFF00;
+constexpr uint32_t HEX_CYAN = 0x00FFFF;
+
+// constantes
+constexpr uint32_t VITESSE_MONITEUR_SERIE = 115200;
+constexpr uint8_t NBR_ZONES = 5;
+constexpr uint8_t PIN_LEDS = 5;
+
+CRGB leds[NBR_ZONES];
 
 // instances des zones d'éclairage
 ZoneEclairage eclairages[NBR_ZONES];
@@ -87,6 +100,7 @@ void loop()
     case GENERAL_ALLUMAGE:
         if(allumerZonesGeneral() == ZONES_TOUTES_ALLUMEES)
         {
+            DEBUG_PRINT("GENERAL > Passage de GENERAL_ALLUMAGE à GENERAL_ALLUME");
             etatGeneral = GENERAL_ALLUME;
         }
         break;
@@ -118,16 +132,16 @@ void callbackGeneralClick()
         etatGeneral = GENERAL_ALLUMAGE;
         break;
     case GENERAL_ALLUMAGE:
-        // rien dans ce cas, on passe
         DEBUG_PRINTLN("On était à GENERAL_ALLUMAGE, on ne fait rien");
+        // rien dans ce cas, on passe
         break;
     case GENERAL_ALLUME:
         DEBUG_PRINTLN("On est à GENERAL_ALLUME, on reset les minuteurs");
         reinitialiserZonesGeneral();
         break;
     case GENERAL_EXTINCTION:
-        // rien ici non plus
         DEBUG_PRINTLN("On était à GENERAL_EXTINCTION, on ne fait rien");
+        // rien ici non plus
         break;
     default:
         DEBUG_PRINTLN("Etat imprévu, extinction!");
@@ -142,20 +156,20 @@ void callbackGeneralClickLong()
     switch (etatGeneral)
     {
     case GENERAL_REPOS:
-        DEBUG_PRINTLN("On était à GENERAL_REPOS, on passe à GENERAL_ALLUMAGE");
-        etatGeneral = GENERAL_ALLUMAGE;
+        DEBUG_PRINTLN("On était à GENERAL_REPOS, on ne fait rien");
+        // ici on ne fait rien
         break;
     case GENERAL_ALLUMAGE:
-        // rien dans ce cas, on passe
         DEBUG_PRINTLN("On était à GENERAL_ALLUMAGE, on ne fait rien");
+        // rien dans ce cas, on passe
         break;
     case GENERAL_ALLUME:
         DEBUG_PRINTLN("On était à GENERAL_ALLUME, on passe à GENERAL_EXTINCTION");
         etatGeneral = GENERAL_EXTINCTION;
         break;
     case GENERAL_EXTINCTION:
-        // rien ici non plus
         DEBUG_PRINTLN("On était à GENERAL_EXTINCTION, on ne fait rien");
+        // rien ici non plus
         break;
     default:
         DEBUG_PRINTLN("Etat imprévu, extinction!");

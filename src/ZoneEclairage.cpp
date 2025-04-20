@@ -5,8 +5,9 @@
 void ZoneEclairage::begin(const uint8_t passedPinBouton, const uint8_t passedPinRelais, CRGB * passedLed, CRGB passedCouleur)
 {
     couleur = passedCouleur;
+    led = passedLed;
     pinRelais = passedPinRelais;
-
+    
     pinMode(pinRelais, OUTPUT);
     setup(passedPinBouton, INPUT_PULLUP, ACTIVE_LOW);
 
@@ -101,9 +102,8 @@ void ZoneEclairage::callbackClickLong()
     switch (etat)
     {
     case REPOS:
-        DEBUG_PRINTLN("On était au REPOS, on passe à ALLUME");
-        resetMinuteur();
-        etat = ALLUME;
+        DEBUG_PRINTLN("On était au REPOS, on ne fait rien");
+        // ici on ne fait rien
         break;
     case ALLUME:
         DEBUG_PRINTLN("On était ALLUME, on passe à REPOS");
@@ -133,13 +133,14 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
 
 void ZoneEclairage::ledClignoterDoucement()
 {
-    if((millis() - tempsPrecedentClignotement) >= 1) // 1 milliseconde
+    unsigned long maintenant = millis();
+    if((maintenant - tempsPrecedentClignotement) >= UNE_MILLISECONDE)
     {
-        if(sensIncrementation == INCREMENT_LUM_LED)
+        if(sensClignotement == INCREMENTER_LUM_LED)
         {
             if(luminosite == 100)
             {
-                sensIncrementation = false;
+                sensClignotement = DECREMENTER_LUM_LED;
                 luminosite = 99;
             }
             else luminosite++;
@@ -148,27 +149,35 @@ void ZoneEclairage::ledClignoterDoucement()
         {
             if(luminosite == 0)
             {
-                sensIncrementation = true;
+                sensClignotement = INCREMENTER_LUM_LED;
                 luminosite = 1;
             }
             else luminosite--;
         }
 
-        if(*led != couleur) *led = couleur;
-        led->nscale8(luminosite);
+        ledAppliquerLum();
 
-        tempsPrecedentClignotement = millis();
+        tempsPrecedentClignotement = maintenant;
     }
 }
 
 void ZoneEclairage::ledClignoterRapidement()
 {
-    if((millis() - tempsPrecedentClignotement) >= 500) // 1/2 seconde
+    unsigned long maintenant = millis();
+    if((maintenant - tempsPrecedentClignotement) >= UNE_DEMIE_SECONDE)
     {
-        luminosite >= 1 ? luminosite = 0 : luminosite = 255;
+        luminosite = (luminosite >= 1) ? 0 : 255;
+        ledAppliquerLum();
+
+        tempsPrecedentClignotement = maintenant;
+    }
+}
+
+void ZoneEclairage::ledAppliquerLum()
+{
+    if(led != nullptr)
+    {
         if(*led != couleur) *led = couleur;
         led->nscale8(luminosite);
-
-        tempsPrecedentClignotement = millis();
     }
 }
