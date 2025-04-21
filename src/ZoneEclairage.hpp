@@ -15,9 +15,6 @@
 
 #define ACTIVE_LOW true
 
-constexpr uint8_t UNE_MILLISECONDE = 1;
-constexpr uint16_t UNE_DEMIE_SECONDE = 500;
-
 // machine à états
 enum etatsZoneEclairage : uint8_t
 {
@@ -36,27 +33,31 @@ class ZoneEclairage : public OneButton
         uint8_t pinRelais;
         bool etatCourantRelais;
         void setRelais(bool);
-        // led rgb + gestion de son clignotement
+        // led rgb
         CRGB * led;
         CRGB couleur;
         uint8_t luminosite;
         bool sensClignotement = INCREMENTER_LUM_LED;
         unsigned long tempsPrecedentClignotement;
+        // fonctions gestion de la led
         void ledClignoterDoucement();
         void ledClignoterRapidement();
         inline void ledAllumerCompletement() { *led = couleur; }
         void ledAppliquerLum();
 
     public:
-        // fonctions principales
+        /// @param uint8_t pin du bouton
+        /// @param uint8_t pin du relais
+        /// @param CRGB pointeur vers l'index de la led dans le tableau
+        /// @param CRGB couleur de la led associée à la zone
         void begin(const uint8_t, const uint8_t, CRGB *, CRGB);
+        // fonctions principales
         void update();
         void callbackClick();
         void callbackClickLong();
         // fonctions getter + secondaires
         inline void eteindreZone() { etat = REPOS; }
         inline void resetMinuteur() { tempsPrecedentClique = millis(); }
-        // inline etatsZoneEclairage getStateMachine() const { return etat; }
 };
 
 #endif // ZONE_HEADER

@@ -134,7 +134,7 @@ void ZoneEclairage::setRelais(bool etatSouhaite)
 void ZoneEclairage::ledClignoterDoucement()
 {
     unsigned long maintenant = millis();
-    if((maintenant - tempsPrecedentClignotement) >= UNE_MILLISECONDE)
+    if((maintenant - tempsPrecedentClignotement) >= 1) // 1 milliseconde
     {
         if(sensClignotement == INCREMENTER_LUM_LED)
         {
@@ -164,7 +164,7 @@ void ZoneEclairage::ledClignoterDoucement()
 void ZoneEclairage::ledClignoterRapidement()
 {
     unsigned long maintenant = millis();
-    if((maintenant - tempsPrecedentClignotement) >= UNE_DEMIE_SECONDE)
+    if((maintenant - tempsPrecedentClignotement) >= 500) // 1/2 seconde
     {
         luminosite = (luminosite >= 1) ? 0 : 255;
         ledAppliquerLum();

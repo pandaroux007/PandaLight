@@ -100,7 +100,7 @@ void loop()
     case GENERAL_ALLUMAGE:
         if(allumerZonesGeneral() == ZONES_TOUTES_ALLUMEES)
         {
-            DEBUG_PRINT("GENERAL > Passage de GENERAL_ALLUMAGE à GENERAL_ALLUME");
+            DEBUG_PRINTLN("GENERAL > Passage de GENERAL_ALLUMAGE à GENERAL_ALLUME");
             etatGeneral = GENERAL_ALLUME;
         }
         break;
@@ -111,7 +111,7 @@ void loop()
         break;
     case GENERAL_EXTINCTION:
         eteindreZonesGeneral();
-        DEBUG_PRINT("GENERAL > Passage de GENERAL_EXTINCTION à GENERAL_REPOS");
+        DEBUG_PRINTLN("GENERAL > Passage de GENERAL_EXTINCTION à GENERAL_REPOS");
         etatGeneral = GENERAL_REPOS;
         break;
     
@@ -204,8 +204,9 @@ bool allumerZonesGeneral()
 
 void eteindreZonesGeneral()
 {
-    for(uint8_t index = INDEX_ZONE_3; index < INDEX_ZONE_5; index++)
+    for(uint8_t index = INDEX_ZONE_3; index <= INDEX_ZONE_5; index++)
     {
+        DEBUG_PRINT("Zone "); DEBUG_VALUE_PRINT(index); DEBUG_PRINTLN(" éteinte!");
         eclairages[index].eteindreZone();
     }
     DEBUG_PRINTLN("GENERAL > Toutes les zones de 3 à 5 ont été éteintes!");
@@ -213,9 +214,10 @@ void eteindreZonesGeneral()
 
 void reinitialiserZonesGeneral()
 {
-    for(uint8_t index = INDEX_ZONE_3; index < INDEX_ZONE_5; index++)
+    for(uint8_t index = INDEX_ZONE_3; index <= INDEX_ZONE_5; index++)
     {
         eclairages[index].resetMinuteur();
+        DEBUG_PRINT("Zone "); DEBUG_VALUE_PRINT(index); DEBUG_PRINTLN(" réinitialisée!");
     }
     DEBUG_PRINTLN("GENERAL > Toutes les zones de 3 à 5 ont été réinitialisées!");
 }
