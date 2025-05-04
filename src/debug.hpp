@@ -8,13 +8,13 @@
     #define DEBUG_INIT(vitesse) Serial.begin(vitesse)
     #define DEBUG_PRINTLN(texte) Serial.println(F(texte))
     #define DEBUG_PRINT(texte) Serial.print(F(texte))
-    #define DEBUG_VALUE_PRINTLN(valeur) Serial.println(valeur)
+    #define DEBUG_VALUE_PRINT_TAB(valeur) Serial.print(valeur); Serial.print(F("\t"))
     #define DEBUG_VALUE_PRINT(valeur) Serial.print(valeur)
 #else
     #define DEBUG_INIT(vitesse)
     #define DEBUG_PRINTLN(texte)
     #define DEBUG_PRINT(texte)
-    #define DEBUG_VALUE_PRINTLN(valeur)
+    #define DEBUG_VALUE_PRINT_TAB(valeur)
     #define DEBUG_VALUE_PRINT(valeur)
 #endif
 

@@ -62,12 +62,8 @@ void ZoneEclairage::update()
 
     FastLED.show(); // on affiche les changement sur la led
 }
-  
-/* --------------------------------------------------------------------------------- callbacks
-tous les changements qu'on fait ici (fonctions de callback du clique
-et du clique long) sur les états seront refléter par les leds et les
-zones d'éclairages au prochain passage dans la fonction update.
-*/
+
+// --------------------------------------------------------------------------------- callbacks
 
 /// @brief fonction appelée quand un clique simple est effectué
 void ZoneEclairage::callbackClick()

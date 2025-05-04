@@ -42,7 +42,7 @@ class ZoneEclairage : public OneButton
         // fonctions gestion de la led
         void ledClignoterDoucement();
         void ledClignoterRapidement();
-        inline void ledAllumerCompletement() { *led = couleur; }
+        inline void ledAllumerCompletement() { if(*led != couleur) *led = couleur; }
         void ledAppliquerLum();
 
     public:
