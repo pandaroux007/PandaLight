@@ -2,20 +2,25 @@
 
 // --------------------------------------------- public
 
-void ZoneEclairage::begin(const uint8_t passedPinBouton, const uint8_t passedPinRelais, CRGB * passedLed, CRGB passedCouleur)
+void ZoneEclairage::begin(const uint8_t passedPinBouton,
+                          const uint8_t passedPinRelais,
+                          uint16_t* passedSettingsModbus,
+                          CRGB* passedLed,
+                          CRGB passedCouleur)
 {
     couleur = passedCouleur;
     led = passedLed;
     pinRelais = passedPinRelais;
+    settingsModbus = passedSettingsModbus;
     
     pinMode(pinRelais, OUTPUT);
     setup(passedPinBouton, INPUT_PULLUP, ACTIVE_LOW);
 
-    // on attache le clique simple à la gestion d'un événement
+    // on attache le click simple à la gestion d'un événement
     attachClick([](void *instance) {
         ((ZoneEclairage *)instance)->callbackClick();
     }, this);
-    // et on fait pareil pour le clique long
+    // et on fait pareil pour le click long
     attachLongPressStart([](void *instance) {
         ((ZoneEclairage *)instance)->callbackClickLong();
     }, this);
@@ -31,24 +36,24 @@ void ZoneEclairage::update()
     switch (etat)
     {
     case REPOS:
-        setRelais(RELAIS_OFF);
+        setEtatRelais(RELAIS_OFF);
         ledClignoterDoucement();
         break;
     case ALLUME:
-        setRelais(RELAIS_ON);
+        setEtatRelais(RELAIS_ON);
         ledAllumerCompletement();
         // gestion minuteur
-        if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_TOTAL - TEMPS_AVANT_EXTINCTION)) // si temps presque écoulé
+        if((millis() - tempsPrecedentClique) >= (getTempsFonctionnement() - getTempsAvantExtinction())) // si temps presque écoulé
         {
             DEBUG_PRINTLN(">> Fin du temps proche!");
             etat = ALLUME_VERS_REPOS;
         }
         break;
     case ALLUME_VERS_REPOS:
-        setRelais(RELAIS_ON);
+        setEtatRelais(RELAIS_ON);
         ledClignoterRapidement();
         // gestion minuteur
-        if((millis() - tempsPrecedentClique) >= (TEMPS_FONCTIONNEMENT_TOTAL)) // si temps complètement écoulé
+        if((millis() - tempsPrecedentClique) >= getTempsFonctionnement()) // si temps complètement écoulé
         {
             DEBUG_PRINTLN(">> Fin du temps, passage à REPOS!");
             etat = REPOS;
@@ -65,10 +70,10 @@ void ZoneEclairage::update()
 
 // --------------------------------------------------------------------------------- callbacks
 
-/// @brief fonction appelée quand un clique simple est effectué
+/// @brief fonction appelée quand un click simple est effectué
 void ZoneEclairage::callbackClick()
 {
-    DEBUG_PRINT("Clique >> ");
+    DEBUG_PRINT("click >> ");
     switch (etat)
     {
     case REPOS:
@@ -91,10 +96,10 @@ void ZoneEclairage::callbackClick()
     }
 }
 
-/// @brief fonction appelée quand un clique long est effectué
+/// @brief fonction appelée quand un click long est effectué
 void ZoneEclairage::callbackClickLong()
 {
-    DEBUG_PRINT("Clique long >> ");
+    DEBUG_PRINT("click long >> ");
     switch (etat)
     {
     case REPOS:
@@ -118,7 +123,7 @@ void ZoneEclairage::callbackClickLong()
 // --------------------------------------------- private
 
 // Comme on utilise souvent la gestion de l'état du relais, une petite fonction ne mange pas de pain ;)
-void ZoneEclairage::setRelais(bool etatSouhaite)
+void ZoneEclairage::setEtatRelais(bool etatSouhaite)
 {
     if(etatSouhaite != etatCourantRelais)
     {
