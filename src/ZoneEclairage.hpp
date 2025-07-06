@@ -1,6 +1,6 @@
 #ifndef ZONE_HEADER
 #define ZONE_HEADER
-#include <Arduino.h> // on définit Arduino ici donc on ne le redéclare pas dans le cpp
+#include <Arduino.h>
 #include <OneButton.h> // on utilise OneButton et pas OneButtonTiny pour les callbacks dans la classe elle-même
 #include <FastLED.h>
 
@@ -10,8 +10,8 @@
 #define RELAIS_ON true
 #define RELAIS_OFF false
 
-#define INCREMENTER_LUM_LED true // sens incrémentation de la luminosité de la led
-#define DECREMENTER_LUM_LED false // sens décrémentation de la luminosité de la led
+#define INCREMENTER_LUM_LED true
+#define DECREMENTER_LUM_LED false
 
 #define ACTIVE_LOW true
 
@@ -27,42 +27,46 @@ class ZoneEclairage : public OneButton
 {
     private:
         // minuteur d'extinction
-        uint16_t* settingsModbus = nullptr;
-        inline uint32_t ms(uint16_t secondes) const { return secondes * 1000; }
-        inline uint32_t getTempsFonctionnement() const { return ms(*settingsModbus); } // 1ère case, c'est l'index passé au début
-        inline uint32_t getTempsAvantExtinction() const { return ms(*(settingsModbus + 1)); } // on va chercher la valeur à la case suivante
+        uint16_t* m_settingsModbus = nullptr;
+        uint32_t ms(uint16_t secondes) const { return secondes * 1000; } // convertir des secondes en millisecondes
+        uint32_t getTempsFonctionnement() const { return ms(*m_settingsModbus); } // 1ère case, c'est l'index passé au début
+        uint32_t getTempsAvantExtinction() const { return ms(*(m_settingsModbus + 1)); } // on va chercher la valeur à la case suivante
         unsigned long tempsPrecedentClique;
+        void resetMinuteur() { tempsPrecedentClique = millis(); }
         etatsZoneEclairage etat = REPOS;
         // relais vers l'éclairage
-        uint8_t pinRelais;
+        uint8_t m_pinRelais;
         bool etatCourantRelais;
         void setEtatRelais(bool);
         // led rgb
-        CRGB* led = nullptr;
-        CRGB couleur;
+        CRGB* m_led = nullptr;
+        CRGB m_couleur;
         uint8_t luminosite;
         bool sensClignotement = INCREMENTER_LUM_LED;
         unsigned long tempsPrecedentClignotement;
         // fonctions gestion de la led
         void ledClignoterDoucement();
         void ledClignoterRapidement();
-        inline void ledAllumerCompletement() { if(*led != couleur) *led = couleur; }
+        void ledAllumerCompletement() { if(*m_led != m_couleur) *m_led = m_couleur; }
         void ledAppliquerLum();
 
     public:
-        /// @param uint8_t pin du bouton
-        /// @param uint8_t pin du relais
-        /// @param uint16_t pointeur vers l'index de la zone dans le holdingRegisters modbus
-        /// @param CRGB pointeur vers l'index de la led dans le tableau
-        /// @param CRGB couleur de la led associée à la zone
+        /// @param pinBouton
+        /// @param pinRelais
+        /// @param settingsModbus pointeur vers l'index de la zone dans le holdingRegisters modbus
+        /// @param led pointeur vers l'index de la led dans le tableau CRGB
+        /// @param couleur (CRGB) de la led associée à la zone
         void begin(const uint8_t, const uint8_t, uint16_t *, CRGB *, CRGB);
-        // fonctions principales
+        
+        /// @brief fonction de mise à jour de la machine à état
+        /// @warning A appeler le plus souvent possible!
         void update();
+
+        /// @brief fonction appelée quand un click simple est effectué
         void callbackClick();
+
+        /// @brief fonction appelée quand un click long est effectué
         void callbackClickLong();
-        // fonctions getter + secondaires
-        inline void eteindreZone() { etat = REPOS; }
-        inline void resetMinuteur() { tempsPrecedentClique = millis(); }
 };
 
 #endif // ZONE_HEADER

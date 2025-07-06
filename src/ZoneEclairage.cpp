@@ -1,20 +1,14 @@
 #include "ZoneEclairage.hpp"
 
-// --------------------------------------------- public
-
-void ZoneEclairage::begin(const uint8_t passedPinBouton,
-                          const uint8_t passedPinRelais,
-                          uint16_t* passedSettingsModbus,
-                          CRGB* passedLed,
-                          CRGB passedCouleur)
+void ZoneEclairage::begin(const uint8_t pinBouton, const uint8_t pinRelais, uint16_t* settingsModbus, CRGB* led, CRGB couleur)
 {
-    couleur = passedCouleur;
-    led = passedLed;
-    pinRelais = passedPinRelais;
-    settingsModbus = passedSettingsModbus;
+    m_couleur = couleur;
+    m_led = led;
+    m_pinRelais = pinRelais;
+    m_settingsModbus = settingsModbus;
     
     pinMode(pinRelais, OUTPUT);
-    setup(passedPinBouton, INPUT_PULLUP, ACTIVE_LOW);
+    setup(pinBouton, INPUT_PULLUP, ACTIVE_LOW);
 
     // on attache le click simple à la gestion d'un événement
     attachClick([](void *instance) {
@@ -26,8 +20,6 @@ void ZoneEclairage::begin(const uint8_t passedPinBouton,
     }, this);
 }
 
-/// @brief fonction de mise à jour de la machine à état
-/// @warning A appeler le plus souvent possible!
 void ZoneEclairage::update()
 {
     tick(); // màj état bouton
@@ -68,9 +60,6 @@ void ZoneEclairage::update()
     FastLED.show(); // on affiche les changement sur la led
 }
 
-// --------------------------------------------------------------------------------- callbacks
-
-/// @brief fonction appelée quand un click simple est effectué
 void ZoneEclairage::callbackClick()
 {
     DEBUG_PRINT("click >> ");
@@ -96,7 +85,6 @@ void ZoneEclairage::callbackClick()
     }
 }
 
-/// @brief fonction appelée quand un click long est effectué
 void ZoneEclairage::callbackClickLong()
 {
     DEBUG_PRINT("click long >> ");
@@ -120,15 +108,12 @@ void ZoneEclairage::callbackClickLong()
     }
 }
 
-// --------------------------------------------- private
-
-// Comme on utilise souvent la gestion de l'état du relais, une petite fonction ne mange pas de pain ;)
 void ZoneEclairage::setEtatRelais(bool etatSouhaite)
 {
     if(etatSouhaite != etatCourantRelais)
     {
         etatCourantRelais = etatSouhaite;
-        digitalWrite(pinRelais, etatSouhaite); // on applique les changements
+        digitalWrite(m_pinRelais, etatSouhaite); // on applique les changements
     }
 }
 
@@ -176,9 +161,9 @@ void ZoneEclairage::ledClignoterRapidement()
 
 void ZoneEclairage::ledAppliquerLum()
 {
-    if(led != nullptr)
+    if(m_led != nullptr)
     {
-        if(*led != couleur) *led = couleur;
-        led->nscale8(luminosite);
+        if(*m_led != m_couleur) *m_led = m_couleur;
+        m_led->nscale8(luminosite);
     }
 }

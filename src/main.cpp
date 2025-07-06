@@ -36,30 +36,30 @@ CRGB leds[NBR_ZONES];
 BME280 bme280;
 
 // ------------------------------ bouton général (voir README.md)
+enum class EtatGeneral : uint8_t
+{
+    ATTENTE,
+    ZONE_2,
+    ZONE_3,
+    ZONE_4
+};
+
+EtatGeneral etatGeneral = EtatGeneral::ATTENTE;
+
 OneButton boutonGeneral;
 
-enum class etatBpGeneral : uint8_t
-{
-    HORS_ALLUMAGE = 0,
-    PREMIERE_ZONE = 2,
-    DEUXIEME_ZONE = 3,
-    TROISIEME_ZONE = 4
-} etatCourantGeneral;
-
-void callbackGeneralClick();
-void callbackGeneralClickLong();
+void clickGeneral();
+void clickLongGeneral();
 void updateGeneral();
 
 // ------------------------------ modbus
 // transmission des données et paramétrage des zones
-//                       RX/TX pins
-SoftwareSerial SerialModbus(9, 8);
+SoftwareSerial SerialModbus(9, 8); // RX/TX
 ModbusRTUSlave modbus(SerialModbus, 7);
 
 constexpr uint16_t MODBUS_BAUDRATE = 38400;
 constexpr uint8_t SLAVE_ADDR = 200;
 
-void configParDefautHoldingRegisters();
 const uint8_t NBR_HOLDING_REGISTERS = NBR_ZONES * 2; // x2 car deux paramètres/zone : temps de fonctionnement ET temps avant extinction
 uint16_t holdingRegisters[NBR_HOLDING_REGISTERS]; // R/W de la part du maitre modbus (config)
 constexpr uint8_t NBR_INPUT_REGISTERS = 2;
@@ -85,15 +85,19 @@ void setup()
     }
     // Initialisation du bouton général
     boutonGeneral.setup(2, INPUT_PULLUP, ACTIVE_LOW);
-    boutonGeneral.attachClick(callbackGeneralClick);
-    boutonGeneral.attachLongPressStart(callbackGeneralClickLong);
+    boutonGeneral.attachClick(clickGeneral);
+    boutonGeneral.attachLongPressStart(clickLongGeneral);
 
     // Initialisation communication modbus
     modbus.configureHoldingRegisters(holdingRegisters, NBR_HOLDING_REGISTERS);
     modbus.configureInputRegisters(inputRegisters, NBR_INPUT_REGISTERS);
     SerialModbus.begin(MODBUS_BAUDRATE);
     modbus.begin(SLAVE_ADDR, MODBUS_BAUDRATE);
-    configParDefautHoldingRegisters();
+    for(size_t zone = 0; zone < NBR_ZONES; ++zone)
+    {
+        holdingRegisters[zone * 2]     = TEMPS_FONCTIONNEMENT_TOTAL_DEFAUT;
+        holdingRegisters[zone * 2 + 1] = TEMPS_AVANT_EXTINCTION_DEFAUT;
+    }
 
     // Initialisation bme280
     Wire.begin();
@@ -120,31 +124,17 @@ void loop()
     modbus.poll();
 }
 
-void configParDefautHoldingRegisters()
-{
-    for(size_t zone = 0; zone < NBR_ZONES; ++zone)
-    {
-        // DEBUG_PRINT("Paramètrage zone "); DEBUG_VALUE_PRINT(zone); DEBUG_PRINTLN("");
-        holdingRegisters[zone * 2]     = TEMPS_FONCTIONNEMENT_TOTAL_DEFAUT;
-        // DEBUG_PRINT("holdingRegisters[1]: "); DEBUG_VALUE_PRINT(holdingRegisters[zone * 2]); DEBUG_PRINTLN("");
-        holdingRegisters[zone * 2 + 1] = TEMPS_AVANT_EXTINCTION_DEFAUT;
-        // DEBUG_PRINT("holdingRegisters[2]: "); DEBUG_VALUE_PRINT(holdingRegisters[zone * 2 + 1]); DEBUG_PRINTLN("");
-    }
-}
-
 // --------------------------------------------- callbacks du bouton général
-inline void callbackGeneralClick()
+inline void clickGeneral()
 {
-    etatCourantGeneral = etatBpGeneral::PREMIERE_ZONE;
+    etatGeneral = EtatGeneral::ZONE_2;
 }
 
-void callbackGeneralClickLong()
+void clickLongGeneral()
 {
-    etatCourantGeneral = etatBpGeneral::HORS_ALLUMAGE;
-
+    etatGeneral = EtatGeneral::ATTENTE;
     for(uint8_t i = 2; i <= NBR_ZONES; i++)
     {
-        // DEBUG_PRINT("GENERAL > Click long sur la zone "); DEBUG_VALUE_PRINT_TAB(i);
         zones[i].callbackClickLong();
     }
 }
@@ -159,35 +149,25 @@ void updateGeneral()
     if((tempsMaintenant - tempsPrecedent) >= 1000) // 1 seconde
     {
         tempsPrecedent = tempsMaintenant;
-
-        switch (etatCourantGeneral)
+        switch (etatGeneral)
         {
-        case etatBpGeneral::HORS_ALLUMAGE:
-            // quand on passe ici, on ne fait rien
+        case EtatGeneral::ATTENTE:
+            // rien à faire ici
             break;
-
-        case etatBpGeneral::PREMIERE_ZONE:
-            etatCourantGeneral = etatBpGeneral::DEUXIEME_ZONE;
-            // DEBUG_PRINT("GENERAL > Click sur la zone "); DEBUG_VALUE_PRINT_TAB((int)etatBpGeneral::PREMIERE_ZONE);
-            zones[(int)etatBpGeneral::PREMIERE_ZONE].callbackClick();
+        case EtatGeneral::ZONE_2:
+            etatGeneral = EtatGeneral::ZONE_3;
+            zones[2].callbackClick();
             break;
-
-        case etatBpGeneral::DEUXIEME_ZONE:
-            etatCourantGeneral = etatBpGeneral::TROISIEME_ZONE;
-            // DEBUG_PRINT("GENERAL > Click sur la zone "); DEBUG_VALUE_PRINT_TAB((int)etatBpGeneral::DEUXIEME_ZONE);
-            zones[(int)etatBpGeneral::DEUXIEME_ZONE].callbackClick();
+        case EtatGeneral::ZONE_3:
+            etatGeneral = EtatGeneral::ZONE_4;
+            zones[3].callbackClick();
             break;
-
-        case etatBpGeneral::TROISIEME_ZONE:
-            etatCourantGeneral = etatBpGeneral::HORS_ALLUMAGE;
-            // DEBUG_PRINT("GENERAL > Click sur la zone "); DEBUG_VALUE_PRINT_TAB((int)etatBpGeneral::TROISIEME_ZONE);
-            zones[(int)etatBpGeneral::TROISIEME_ZONE].callbackClick();
+        case EtatGeneral::ZONE_4:
+            etatGeneral = EtatGeneral::ATTENTE;
+            zones[4].callbackClick();
             break;
-
         default:
-            etatCourantGeneral = etatBpGeneral::HORS_ALLUMAGE;
-            // DEBUG_PRINTLN("GENERAL > État inconnu, passage à HORS_ALLUMAGE");
-            break;
+            etatGeneral = EtatGeneral::ATTENTE;
         }
     }
 }
