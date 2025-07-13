@@ -58,9 +58,9 @@ SoftwareSerial SerialModbus(9, 8); // RX/TX
 ModbusRTUSlave modbus(SerialModbus, 7);
 
 constexpr uint16_t MODBUS_BAUDRATE = 38400;
-constexpr uint8_t SLAVE_ADDR = 200;
+constexpr uint8_t MODBUS_OFFSET = 3;
 
-const uint8_t NBR_HOLDING_REGISTERS = NBR_ZONES * 2; // x2 car deux paramètres/zone : temps de fonctionnement ET temps avant extinction
+const uint8_t NBR_HOLDING_REGISTERS = NBR_ZONES * MODBUS_OFFSET;
 uint16_t holdingRegisters[NBR_HOLDING_REGISTERS]; // R/W de la part du maitre modbus (config)
 constexpr uint8_t NBR_INPUT_REGISTERS = 2;
 uint16_t inputRegisters[NBR_INPUT_REGISTERS]; // R seulement de la part du maitre (capteur)
@@ -81,7 +81,7 @@ void setup()
     // Initialisation des zones d'éclairage
     for(size_t i = 0; i < NBR_ZONES; ++i)
     {
-        zones[i].begin(zonesConfig[i].pinRelais, zonesConfig[i].pinBouton, &holdingRegisters[i * 2], &leds[i], zonesConfig[i].couleur);
+        zones[i].begin(zonesConfig[i].pinRelais, zonesConfig[i].pinBouton, &holdingRegisters[i * MODBUS_OFFSET], &leds[i], zonesConfig[i].couleur);
     }
     // Initialisation du bouton général
     boutonGeneral.setup(2, INPUT_PULLUP, ACTIVE_LOW);
@@ -92,11 +92,11 @@ void setup()
     modbus.configureHoldingRegisters(holdingRegisters, NBR_HOLDING_REGISTERS);
     modbus.configureInputRegisters(inputRegisters, NBR_INPUT_REGISTERS);
     SerialModbus.begin(MODBUS_BAUDRATE);
-    modbus.begin(SLAVE_ADDR, MODBUS_BAUDRATE);
+    modbus.begin(200, MODBUS_BAUDRATE);
     for(size_t zone = 0; zone < NBR_ZONES; ++zone)
     {
-        holdingRegisters[zone * 2]     = TEMPS_FONCTIONNEMENT_TOTAL_DEFAUT;
-        holdingRegisters[zone * 2 + 1] = TEMPS_AVANT_EXTINCTION_DEFAUT;
+        holdingRegisters[zone * MODBUS_OFFSET]     = TEMPS_FONCTIONNEMENT_TOTAL_DEFAUT;
+        holdingRegisters[zone * MODBUS_OFFSET + 1] = TEMPS_AVANT_EXTINCTION_DEFAUT;
     }
 
     // Initialisation bme280
@@ -133,7 +133,7 @@ inline void clickGeneral()
 void clickLongGeneral()
 {
     etatGeneral = EtatGeneral::ATTENTE;
-    for(uint8_t i = 2; i <= NBR_ZONES; i++)
+    for(uint8_t i = 2; i <= NBR_ZONES; ++i)
     {
         zones[i].callbackClickLong();
     }

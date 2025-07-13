@@ -21,22 +21,15 @@ Dernier point, chaque carte `PandaLight` est équipée d'un driver RS485 pour po
 > **Attention!** Les dépendances présentées ici, risquent de changer dans le code avec le temps sans que cette section ne soit actualisée!
 
 J'utilise la bibliothèque `OneButton` pour gérer les appuis longs et simples sur les boutons. Je n'utilise pas `OneButtonTiny` malheureusement, car celle-ci ne propose pas de moyen de binder (entendez "lier") un click sur le bouton, avec une fonction membre de la classe `ZoneEclairage`, et encore, avec OneButton je suis obligé de passer par une fonction lambda dans la fonction `begin` de [ZoneEclairage.cpp](src/ZoneEclairage.cpp):
-```cpp
-void ZoneEclairage::begin(...)
-{
-    ...
 
-    // on attache le click simple à la gestion d'un événement
-    attachClick([](void *instance) {
-        ((ZoneEclairage *)instance)->callbackClick();
-    }, this);
-    // et on fait pareil pour le click long
-    attachLongPressStart([](void *instance) {
-        ((ZoneEclairage *)instance)->callbackClickLong();
-    }, this);
-}
-```
-
-Ensuite, `FastLED`, qui me permet de gérer le bandeau de led simplement via un tableau `CRGB`, de faire varier la luminosité, etc. Pour le capteur BME280 (car oui, chaque carte `PandaLight` en compte un), j'utilise la bibliothèque de Sparkfun, `SparkFunBME280`, bien que mon module ne soit pas de cette marque. Ce capteur, de la marque BOSH, permet de mesurer la température, l'humidité ainsi que la pression (moins utile dans mon cas). Le miens est relié en I2C
+Ensuite, `FastLED`, qui me permet de gérer le bandeau de led simplement via un tableau `CRGB`, de faire varier la luminosité, etc. Pour le capteur BME280, j'utilise la bibliothèque de Sparkfun, `SparkFunBME280`, bien que mon module ne soit pas de cette marque. Ce capteur, de la marque BOSH, permet de mesurer la température, l'humidité ainsi que la pression (moins utile dans mon cas). Le miens est relié en I2C.
 
 Enfin, les cartes `PandaLight` utilise un driver RS485, de type N65HVD72D, afin de pouvoir communiquer *via* le protocole modbus. Pour utiliser le protocole facilement et communiquer à un serveur Modbus TCP maître qui récoltera les données et paramétrera les cartes, via la gateway TCP/RTU, j'utilise la bibliothèque `ModbusRTUSlave`.
+
+### Spécifications pour modbus
+**Les input registers**, consultables uniquement en lecture par le maître modbus, contiennent seulement les données des capteurs.
+
+Étant donné qu'il y a plusieurs zones, **les holding registers** sont segmentés en plusieurs parties, chacune dédiée à une instance de la classe ZoneEclairage. Chacune de ces parties est subdivisée en plusieurs sous-section, les cases du tableau (faisant toutes 16 bits car de type `uint16_t`) :
+- Dans la première, est stocké le **temps de fonctionnement total** de la zone.
+- Dans la deuxième, le **temps avant l'extinction**.
+- Dans la troisième, à chaque appel à la fonction update de l'instance on recalcule le **temps restant en seconde** et on le place dans la case. Si à l'appel suivant on voit le que le maître modbus l'a modifié, alors on compte un click, et on remet à jour la valeur, et ainsi de suite.

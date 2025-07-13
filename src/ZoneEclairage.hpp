@@ -1,5 +1,5 @@
-#ifndef ZONE_HEADER
-#define ZONE_HEADER
+#pragma once
+
 #include <Arduino.h>
 #include <OneButton.h> // on utilise OneButton et pas OneButtonTiny pour les callbacks dans la classe elle-même
 #include <FastLED.h>
@@ -15,6 +15,19 @@
 
 #define ACTIVE_LOW true
 
+struct modbus_t
+{
+    uint16_t* modbusAddr = nullptr;
+
+    uint16_t getTempsFonctionnement(void) const { return *modbusAddr; } // 1ère case, c'est l'index passé au début
+    uint16_t getTempsAvantExtinction(void) const { return *(modbusAddr + 1); } // on va chercher la valeur suivante à la case 2
+    uint16_t getTempsRestant(void) const { return *(modbusAddr + 2); } // même chose à la case 3
+
+    void setTempsFonctionnement(uint16_t t) { *modbusAddr = t; }
+    void setTempsAvantExtinction(uint16_t t) { *(modbusAddr + 1) = t; }
+    void setTempsRestant(uint16_t t) { *(modbusAddr + 2) = t; }
+};
+
 // machine à états
 enum etatsZoneEclairage : uint8_t
 {
@@ -26,22 +39,26 @@ enum etatsZoneEclairage : uint8_t
 class ZoneEclairage : public OneButton
 {
     private:
+        // modbus
+        modbus_t m_modbus;
+        uint16_t tempsRestantPrecedent = 0;
+        //uint32_t
+        void updateModbus();
         // minuteur d'extinction
-        uint16_t* m_settingsModbus = nullptr;
         uint32_t ms(uint16_t secondes) const { return secondes * 1000; } // convertir des secondes en millisecondes
-        uint32_t getTempsFonctionnement() const { return ms(*m_settingsModbus); } // 1ère case, c'est l'index passé au début
-        uint32_t getTempsAvantExtinction() const { return ms(*(m_settingsModbus + 1)); } // on va chercher la valeur à la case suivante
-        unsigned long tempsPrecedentClique;
-        void resetMinuteur() { tempsPrecedentClique = millis(); }
+        uint32_t tempsFonctionnement() const { return ms(m_modbus.getTempsFonctionnement()); }
+        uint32_t tempsAvantExtinction() const { return ms(m_modbus.getTempsAvantExtinction()); }
+        unsigned long tempsPrecedentClick = 0;
+        void resetMinuteur() { tempsPrecedentClick = millis(); }
         etatsZoneEclairage etat = REPOS;
         // relais vers l'éclairage
-        uint8_t m_pinRelais;
+        uint8_t m_pinRelais = 0;
         bool etatCourantRelais;
         void setEtatRelais(bool);
         // led rgb
         CRGB* m_led = nullptr;
-        CRGB m_couleur;
-        uint8_t luminosite;
+        CRGB m_couleur = 0x000000;
+        uint8_t luminosite = 0;
         bool sensClignotement = INCREMENTER_LUM_LED;
         unsigned long tempsPrecedentClignotement;
         // fonctions gestion de la led
@@ -53,7 +70,7 @@ class ZoneEclairage : public OneButton
     public:
         /// @param pinBouton
         /// @param pinRelais
-        /// @param settingsModbus pointeur vers l'index de la zone dans le holdingRegisters modbus
+        /// @param configModbus pointeur vers l'index de la zone dans le holdingRegisters modbus
         /// @param led pointeur vers l'index de la led dans le tableau CRGB
         /// @param couleur (CRGB) de la led associée à la zone
         void begin(const uint8_t, const uint8_t, uint16_t *, CRGB *, CRGB);
@@ -68,5 +85,3 @@ class ZoneEclairage : public OneButton
         /// @brief fonction appelée quand un click long est effectué
         void callbackClickLong();
 };
-
-#endif // ZONE_HEADER

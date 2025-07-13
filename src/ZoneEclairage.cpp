@@ -1,11 +1,11 @@
 #include "ZoneEclairage.hpp"
 
-void ZoneEclairage::begin(const uint8_t pinBouton, const uint8_t pinRelais, uint16_t* settingsModbus, CRGB* led, CRGB couleur)
+void ZoneEclairage::begin(const uint8_t pinBouton, const uint8_t pinRelais, uint16_t* configModbus, CRGB* led, CRGB couleur)
 {
     m_couleur = couleur;
     m_led = led;
     m_pinRelais = pinRelais;
-    m_settingsModbus = settingsModbus;
+    m_modbus.modbusAddr = configModbus;
     
     pinMode(pinRelais, OUTPUT);
     setup(pinBouton, INPUT_PULLUP, ACTIVE_LOW);
@@ -35,7 +35,7 @@ void ZoneEclairage::update()
         setEtatRelais(RELAIS_ON);
         ledAllumerCompletement();
         // gestion minuteur
-        if((millis() - tempsPrecedentClique) >= (getTempsFonctionnement() - getTempsAvantExtinction())) // si temps presque écoulé
+        if((millis() - tempsPrecedentClick) >= (tempsFonctionnement() - tempsAvantExtinction())) // si temps presque écoulé
         {
             DEBUG_PRINTLN(">> Fin du temps proche!");
             etat = ALLUME_VERS_REPOS;
@@ -45,7 +45,7 @@ void ZoneEclairage::update()
         setEtatRelais(RELAIS_ON);
         ledClignoterRapidement();
         // gestion minuteur
-        if((millis() - tempsPrecedentClique) >= getTempsFonctionnement()) // si temps complètement écoulé
+        if((millis() - tempsPrecedentClick) >= tempsFonctionnement()) // si temps complètement écoulé
         {
             DEBUG_PRINTLN(">> Fin du temps, passage à REPOS!");
             etat = REPOS;
@@ -58,6 +58,8 @@ void ZoneEclairage::update()
     }
 
     FastLED.show(); // on affiche les changement sur la led
+
+    updateModbus();
 }
 
 void ZoneEclairage::callbackClick()
@@ -105,6 +107,23 @@ void ZoneEclairage::callbackClickLong()
     default:
         etat = REPOS;
         break;
+    }
+}
+
+void ZoneEclairage::updateModbus()
+{
+    if((millis() - tempsPrecedentClick) < tempsFonctionnement()) // si décompte en marche
+    {
+        uint16_t tempsRestant = (tempsFonctionnement() - (millis() - tempsPrecedentClick)) / 1000; // en secondes
+        // si le maitre modbus a modifié la valeur du temps restant contenue dans le tableau modbus 
+        // alors on considère qu'un click simple a été effectué (pour plus d'info, voir README.md).
+        if (m_modbus.getTempsRestant() != tempsRestantPrecedent)
+        {
+            callbackClick();
+        }
+        
+        m_modbus.setTempsRestant(tempsRestant);
+        tempsRestantPrecedent = tempsRestant;
     }
 }
 

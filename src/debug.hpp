@@ -1,5 +1,4 @@
-#ifndef DEBUG_HEADER
-#define DEBUG_HEADER
+#pragma once
 
 // ligne à commenter pour désactiver le debug et/ou les temps raccourcis
 #define PRINT_DEBUG_ACTIVE
@@ -29,5 +28,3 @@
     // 5mn × 60s × 1000ms, temps pendant lequel un clique (simple ou long) relance le minuteur
     constexpr uint32_t TEMPS_AVANT_EXTINCTION_DEFAUT = 300; // 5 minutes
 #endif
-
-#endif // DEBUG_HEADER
